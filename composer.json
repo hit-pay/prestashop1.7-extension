@@ -1,0 +1,19 @@
+{
+  "name": "soft-build/hitpay",
+  "type": "project",
+  "authors": [
+    {
+      "name": "Dzmitry Urbanovich",
+      "email": "dev@soft-build.by"
+    }
+  ],
+  "require": {
+    "soft-build/hitpay-sdk": "1.0.*"
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://urbanovichdi@bitbucket.org/urbanovichdi/hitpay-sdk.git"
+    }
+  ]
+}

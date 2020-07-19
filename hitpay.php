@@ -28,6 +28,11 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+require_once _PS_MODULE_DIR_ . 'hitpay/vendor/autoload.php';
+
+/**
+ * Class Hitpay
+ */
 class Hitpay extends PaymentModule
 {
     protected $config_form = false;
@@ -52,7 +57,7 @@ class Hitpay extends PaymentModule
 
         $this->limited_countries = array('FR');
 
-        $this->limited_currencies = array('EUR');
+        $this->limited_currencies = array('EUR', 'SGD');
 
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
     }
@@ -69,13 +74,13 @@ class Hitpay extends PaymentModule
             return false;
         }
 
-        $iso_code = Country::getIsoById(Configuration::get('PS_COUNTRY_DEFAULT'));
+        /*$iso_code = Country::getIsoById(Configuration::get('PS_COUNTRY_DEFAULT'));
 
         if (in_array($iso_code, $this->limited_countries) == false)
         {
             $this->_errors[] = $this->l('This module is not available in your country');
             return false;
-        }
+        }*/
 
         Configuration::updateValue('HITPAY_LIVE_MODE', false);
 
@@ -110,7 +115,8 @@ class Hitpay extends PaymentModule
 
         $output = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
 
-        return $output.$this->renderForm();
+//        return $output.$this->renderForm();
+        return $this->renderForm();
     }
 
     /**
@@ -172,17 +178,17 @@ class Hitpay extends PaymentModule
                             )
                         ),
                     ),
-                    array(
+                    /*array(
                         'col' => 3,
                         'type' => 'text',
                         'prefix' => '<i class="icon icon-envelope"></i>',
                         'desc' => $this->l('Enter a valid email address'),
                         'name' => 'HITPAY_ACCOUNT_EMAIL',
                         'label' => $this->l('Email'),
-                    ),
+                    ),*/
                     array(
                         'type' => 'password',
-                        'name' => 'HITPAY_ACCOUNT_PASSWORD',
+                        'name' => 'HITPAY_ACCOUNT_API_KEY',
                         'label' => $this->l('Password'),
                     ),
                 ),
@@ -199,9 +205,9 @@ class Hitpay extends PaymentModule
     protected function getConfigFormValues()
     {
         return array(
-            'HITPAY_LIVE_MODE' => Configuration::get('HITPAY_LIVE_MODE', true),
-            'HITPAY_ACCOUNT_EMAIL' => Configuration::get('HITPAY_ACCOUNT_EMAIL', 'contact@prestashop.com'),
-            'HITPAY_ACCOUNT_PASSWORD' => Configuration::get('HITPAY_ACCOUNT_PASSWORD', null),
+            'HITPAY_LIVE_MODE' => Configuration::get('HITPAY_LIVE_MODE'),
+            /*'HITPAY_ACCOUNT_EMAIL' => Configuration::get('HITPAY_ACCOUNT_EMAIL'),*/
+            'HITPAY_ACCOUNT_API_KEY' => Configuration::get('HITPAY_ACCOUNT_API_KEY'),
         );
     }
 

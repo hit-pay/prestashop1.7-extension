@@ -37,6 +37,12 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
         $cart = new Cart((int) $cart_id);
         $customer = new Customer((int) $cart->id_customer);
 
+        if ($secure_key != $customer->secure_key) {
+            $this->errors[] = $this->module->l('An error occured. Please contact the merchant to have more informations');
+
+            return $this->setTemplate('error.tpl');
+        }
+
         /**
          * Since it's an example we are validating the order right here,
          * You should not do it this way in your own module.

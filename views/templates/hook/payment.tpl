@@ -34,7 +34,7 @@
 			{else}
 				<a href="{$link->getModuleLink('hitpay', 'redirect', array(), true)|escape:'htmlall':'UTF-8'}" title="{l s='Pay with my payment module' mod='hitpay'}">
 					<img src="{$module_dir|escape:'htmlall':'UTF-8'}/logo.png" alt="{l s='Pay with my payment module' mod='hitpay'}" width="32" height="32" />
-					{l s='Pay with my payment module' mod='hitpay'}
+					{l s='HitPay' mod='hitpay'}
 				</a>
 			{/if}
 		</p>
