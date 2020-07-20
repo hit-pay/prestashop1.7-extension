@@ -23,6 +23,9 @@
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
+
+use HitPay\Client;
+
 class HitpayConfirmationModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
@@ -47,8 +50,34 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
          * Since it's an example we are validating the order right here,
          * You should not do it this way in your own module.
          */
-        $payment_status = Configuration::get('PS_OS_PAYMENT'); // Default value for a payment that succeed.
+        $payment_status = Configuration::get('HITPAY_WAITING_PAYMENT_STATUS'); // Default value for a payment that succeed.
         $message = null; // You can add a comment directly into the order so the merchant will see it in the BO.
+
+        /*try {
+            $hitpay_client = new Client(ConfigurationCore::get('HITPAY_ACCOUNT_API_KEY'));
+            $result = $hitpay_client->getPaymentStatus(Tools::getValue('id'));
+            if ($result->getStatus() == 'completed') {
+                $payment_status = Configuration::get('PS_OS_PAYMENT');
+            } elseif ($result->getStatus() == 'failed') {
+                $payment_status = Configuration::get('PS_OS_ERROR');
+            } elseif ($result->getStatus() == 'pending') {
+                $payment_status = Configuration::get('HITPAY_WAITING_PAYMENT_STATUS');
+            } else {
+                $message = sprintf('HitPay: sent status is %s', $result->getStatus());
+                throw new \Exception($message);
+            }
+        } catch (\Exception $e) {
+            PrestaShopLogger::addLog(
+                $e->getMessage(),
+                3,
+                null,
+                'HitPay'
+            );
+
+            $this->errors[] = $this->module->l('Something went wrong, please contact the merchant');
+
+            return $this->setTemplate('error.tpl');
+        }*/
 
         /**
          * Converting cart into a valid order

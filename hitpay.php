@@ -84,19 +84,33 @@ class Hitpay extends PaymentModule
 
         Configuration::updateValue('HITPAY_LIVE_MODE', false);
 
+        $order_status = new OrderState();
+        foreach (Language::getLanguages() as $lang) {
+            $order_status->name[$lang['id_lang']] = $this->l('Waiting for payment confirmation');
+        }
+        $order_status->module_name = $this->name;
+        $order_status->color = '#FF8C00';
+        $order_status->send_email = false;
+        if ($order_status->save()) {
+            Configuration::updateValue('HITPAY_WAITING_PAYMENT_STATUS', $order_status->id);
+        }
+
         return parent::install() &&
             $this->registerHook('header') &&
             $this->registerHook('backOfficeHeader') &&
             $this->registerHook('payment') &&
             $this->registerHook('paymentReturn') &&
-            $this->registerHook('paymentOptions');
+            $this->registerHook('paymentOptions') &&
+            $order_status->id;
     }
 
     public function uninstall()
     {
         Configuration::deleteByName('HITPAY_LIVE_MODE');
 
-        return parent::uninstall();
+        $order_status = new OrderState(Configuration::get('HITPAY_WAITING_PAYMENT_STATUS'));
+
+        return parent::uninstall() && $order_status->delete();
     }
 
     /**

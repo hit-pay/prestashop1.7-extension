@@ -26,17 +26,10 @@
 <div class="row">
 	<div class="col-xs-12 col-md-6">
 		<p class="payment_module" id="hitpay_payment_button">
-			{if $cart->getOrderTotal() < 2}
-				<a href="">
-					<img src="{$domain|cat:$payment_button|escape:'html':'UTF-8'}" alt="{l s='Pay with my payment module' mod='hitpay'}" />
-					{l s='Minimum amount required in order to pay with my payment module:' mod='hitpay'} {convertPrice price=2}
-				</a>
-			{else}
-				<a href="{$link->getModuleLink('hitpay', 'redirect', array(), true)|escape:'htmlall':'UTF-8'}" title="{l s='Pay with my payment module' mod='hitpay'}">
-					<img src="{$module_dir|escape:'htmlall':'UTF-8'}/logo.png" alt="{l s='Pay with my payment module' mod='hitpay'}" width="32" height="32" />
-					{l s='HitPay' mod='hitpay'}
-				</a>
-			{/if}
+			<a href="{$link->getModuleLink('hitpay', 'redirect', array(), true)|escape:'htmlall':'UTF-8'}" title="{l s='HitPay' mod='hitpay'}">
+				<img src="{$module_dir|escape:'htmlall':'UTF-8'}/logo.png" alt="{l s='HitPay' mod='hitpay'}" width="32" height="32" />
+				{l s='HitPay' mod='hitpay'}
+			</a>
 		</p>
 	</div>
 </div>

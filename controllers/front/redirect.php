@@ -25,6 +25,7 @@
  */
 
 use HitPay\Client;
+use HitPay\Request\CreatePayment;
 
 class HitpayRedirectModuleFrontController extends ModuleFrontController
 {
@@ -56,7 +57,7 @@ class HitpayRedirectModuleFrontController extends ModuleFrontController
                 true
             );
 
-            $create_payment_request = new HitPay\Request\CreatePayment();
+            $create_payment_request = new CreatePayment();
             $create_payment_request->setAmount($cart->getOrderTotal())
                 ->setCurrency($currency->iso_code)
                 ->setReferenceNumber($cart->id)
@@ -72,12 +73,29 @@ class HitpayRedirectModuleFrontController extends ModuleFrontController
 
             $result = $hitpay_client->createPayment($create_payment_request);
 
-            Tools::redirect($result->getUrl());
+            if ($result->getStatus() == 'pending') {
+                Tools::redirect($result->getUrl());
+            } else {
+                $message = sprintf('HitPay: sent status is %s', $result->getStatus());
+                throw new \Exception($message);
+            }
         } catch (\Exception $e) {
-            return $this->displayError($e->getMessage());
+            PrestaShopLogger::addLog(
+                $e->getMessage(),
+                3,
+                null,
+                'HitPay'
+            );
+
+            return $this->displayError($this->module->l('Something went wrong, please contact the merchant'));
         }
     }
 
+    /**
+     * @param $message
+     * @param bool $description
+     * @return mixed
+     */
     protected function displayError($message, $description = false)
     {
         /*
