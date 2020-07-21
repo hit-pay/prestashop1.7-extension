@@ -52,11 +52,18 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
          */
         $payment_status = Configuration::get('HITPAY_WAITING_PAYMENT_STATUS'); // Default value for a payment that succeed.
         $message = null; // You can add a comment directly into the order so the merchant will see it in the BO.
+        $transaction_id = null;
 
-        /*try {
-            $hitpay_client = new Client(ConfigurationCore::get('HITPAY_ACCOUNT_API_KEY'));
-            $result = $hitpay_client->getPaymentStatus(Tools::getValue('id'));
+        try {
+            $hitpay_client = new Client(Configuration::get('HITPAY_ACCOUNT_API_KEY'));
+            $result = $hitpay_client->getPaymentStatus(Tools::getValue('reference'));
+
             if ($result->getStatus() == 'completed') {
+                $payments = $result->getPayments();
+                $payment = array_shift($payments);
+                if ($payment->status == 'succeeded') {
+                    $transaction_id = $payment->id;
+                }
                 $payment_status = Configuration::get('PS_OS_PAYMENT');
             } elseif ($result->getStatus() == 'failed') {
                 $payment_status = Configuration::get('PS_OS_ERROR');
@@ -77,7 +84,7 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
             $this->errors[] = $this->module->l('Something went wrong, please contact the merchant');
 
             return $this->setTemplate('error.tpl');
-        }*/
+        }
 
         /**
          * Converting cart into a valid order
@@ -85,7 +92,19 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
         $module_name = $this->module->displayName;
         $currency_id = (int) Context::getContext()->currency->id;
 
-        $this->module->validateOrder($cart_id, $payment_status, $cart->getOrderTotal(), $module_name, $message, array(), $currency_id, false, $secure_key);
+        $this->module->validateOrder(
+            $cart_id,
+            $payment_status,
+            $cart->getOrderTotal(),
+            $module_name,
+            $message,
+            array(
+                'transaction_id' => $transaction_id
+            ),
+            $currency_id,
+            false,
+            $secure_key
+        );
 
         /**
          * If the order has been validated we try to retrieve it

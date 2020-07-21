@@ -57,16 +57,27 @@ class HitpayRedirectModuleFrontController extends ModuleFrontController
                 true
             );
 
+            $webhook = Context::getContext()->link->getModuleLink(
+                'hitpay',
+                'webhook',
+                [
+                    'cart_id' => $cart->id,
+                    'secure_key' => Context::getContext()->customer->secure_key,
+                ],
+                true
+            );
+
             $create_payment_request = new CreatePayment();
             $create_payment_request->setAmount($cart->getOrderTotal())
                 ->setCurrency($currency->iso_code)
                 ->setReferenceNumber($cart->id)
+                ->setWebhook($webhook)
                 ->setRedirectUrl($redirect_url);
 
             /**
-             * @var CustomerCore $customer
+             * @var Customer $customer
              */
-            if ($customer = ContextCore::getContext()->customer) {
+            if ($customer = Context::getContext()->customer) {
                 $create_payment_request->setName($customer->firstname . ' ' . $customer->lastname);
                 $create_payment_request->setEmail($customer->email);
             }
