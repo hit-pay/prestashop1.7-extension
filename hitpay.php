@@ -29,6 +29,7 @@ if (!defined('_PS_VERSION_')) {
 }
 
 require_once _PS_MODULE_DIR_ . 'hitpay/vendor/autoload.php';
+require_once _PS_MODULE_DIR_ . 'hitpay/classes/HitPayPayment.php';
 
 /**
  * Class Hitpay
@@ -37,6 +38,9 @@ class Hitpay extends PaymentModule
 {
     protected $config_form = false;
 
+    /**
+     * Hitpay constructor.
+     */
     public function __construct()
     {
         $this->name = 'hitpay';
@@ -101,7 +105,8 @@ class Hitpay extends PaymentModule
             $this->registerHook('payment') &&
             $this->registerHook('paymentReturn') &&
             $this->registerHook('paymentOptions') &&
-            $order_status->id;
+            $order_status->id &&
+            HitPayPayment::install();
     }
 
     public function uninstall()
@@ -110,7 +115,9 @@ class Hitpay extends PaymentModule
 
         $order_status = new OrderState(Configuration::get('HITPAY_WAITING_PAYMENT_STATUS'));
 
-        return parent::uninstall() && $order_status->delete();
+        return parent::uninstall() &&
+            $order_status->delete() &&
+            HitPayPayment::uninstall();
     }
 
     /**
@@ -205,6 +212,11 @@ class Hitpay extends PaymentModule
                         'name' => 'HITPAY_ACCOUNT_API_KEY',
                         'label' => $this->l('Password'),
                     ),
+                    array(
+                        'type' => 'password',
+                        'name' => 'HITPAY_ACCOUNT_SALT',
+                        'label' => $this->l('Salt'),
+                    ),
                 ),
                 'submit' => array(
                     'title' => $this->l('Save'),
@@ -222,6 +234,7 @@ class Hitpay extends PaymentModule
             'HITPAY_LIVE_MODE' => Configuration::get('HITPAY_LIVE_MODE'),
             /*'HITPAY_ACCOUNT_EMAIL' => Configuration::get('HITPAY_ACCOUNT_EMAIL'),*/
             'HITPAY_ACCOUNT_API_KEY' => Configuration::get('HITPAY_ACCOUNT_API_KEY'),
+            'HITPAY_ACCOUNT_SALT' => Configuration::get('HITPAY_ACCOUNT_SALT'),
         );
     }
 

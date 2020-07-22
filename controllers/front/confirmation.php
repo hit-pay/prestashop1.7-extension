@@ -26,8 +26,14 @@
 
 use HitPay\Client;
 
+/**
+ * Class HitpayConfirmationModuleFrontController
+ */
 class HitpayConfirmationModuleFrontController extends ModuleFrontController
 {
+    /**
+     * @return bool
+     */
     public function postProcess()
     {
         if ((Tools::isSubmit('cart_id') == false) || (Tools::isSubmit('secure_key') == false)) {
@@ -41,7 +47,9 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
         $customer = new Customer((int) $cart->id_customer);
 
         if ($secure_key != $customer->secure_key) {
-            $this->errors[] = $this->module->l('An error occured. Please contact the merchant to have more informations');
+            $this->errors[] = $this->module->l(
+                'An error occured. Please contact the merchant to have more informations'
+            );
 
             return $this->setTemplate('error.tpl');
         }
@@ -55,7 +63,10 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
         $transaction_id = null;
 
         try {
-            $hitpay_client = new Client(Configuration::get('HITPAY_ACCOUNT_API_KEY'));
+            $hitpay_client = new Client(
+                Configuration::get('HITPAY_ACCOUNT_API_KEY'),
+                Configuration::get('HITPAY_LIVE_MODE')
+            );
             $result = $hitpay_client->getPaymentStatus(Tools::getValue('reference'));
 
             if ($result->getStatus() == 'completed') {
@@ -63,6 +74,8 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
                 $payment = array_shift($payments);
                 if ($payment->status == 'succeeded') {
                     $transaction_id = $payment->id;
+                } else {
+                    throw new \Exception(sprintf('HitPay: sent payment status is %s', $payment->status));
                 }
                 $payment_status = Configuration::get('PS_OS_PAYMENT');
             } elseif ($result->getStatus() == 'failed') {
@@ -70,8 +83,7 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
             } elseif ($result->getStatus() == 'pending') {
                 $payment_status = Configuration::get('HITPAY_WAITING_PAYMENT_STATUS');
             } else {
-                $message = sprintf('HitPay: sent status is %s', $result->getStatus());
-                throw new \Exception($message);
+                throw new \Exception(sprintf('HitPay: sent status is %s', $result->getStatus()));
             }
         } catch (\Exception $e) {
             PrestaShopLogger::addLog(
@@ -116,12 +128,23 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
              * The order has been placed so we redirect the customer on the confirmation page.
              */
             $module_id = $this->module->id;
-            Tools::redirect('index.php?controller=order-confirmation&id_cart=' . $cart_id . '&id_module=' . $module_id . '&id_order=' . $order_id . '&key=' . $secure_key);
+            Tools::redirect(
+                'index.php?controller=order-confirmation&id_cart='
+                . $cart_id
+                . '&id_module='
+                . $module_id
+                . '&id_order='
+                . $order_id
+                . '&key='
+                . $secure_key
+            );
         } else {
             /*
              * An error occured and is shown on a new page.
              */
-            $this->errors[] = $this->module->l('An error occured. Please contact the merchant to have more informations');
+            $this->errors[] = $this->module->l(
+                'An error occured. Please contact the merchant to have more informations'
+            );
 
             return $this->setTemplate('error.tpl');
         }

@@ -46,7 +46,10 @@ class HitpayRedirectModuleFrontController extends ModuleFrontController
              */
             $currency = Context::getContext()->currency;
 
-            $hitpay_client = new Client(ConfigurationCore::get('HITPAY_ACCOUNT_API_KEY'));
+            $hitpay_client = new Client(
+                Configuration::get('HITPAY_ACCOUNT_API_KEY'),
+                Configuration::get('HITPAY_LIVE_MODE')
+            );
             $redirect_url = Context::getContext()->link->getModuleLink(
                 'hitpay',
                 'confirmation',
