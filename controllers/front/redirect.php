@@ -24,6 +24,8 @@
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
+require_once _PS_MODULE_DIR_ . 'hitpay/classes/HitPayPayment.php';
+
 use HitPay\Client;
 use HitPay\Request\CreatePayment;
 
