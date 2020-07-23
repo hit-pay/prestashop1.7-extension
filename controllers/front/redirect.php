@@ -87,6 +87,15 @@ class HitpayRedirectModuleFrontController extends ModuleFrontController
 
             $result = $hitpay_client->createPayment($create_payment_request);
 
+            $payment = new HitPayPayment();
+            $payment->payment_id = $result->getId();
+            $payment->amount = $cart->getOrderTotal();
+            $payment->currency_id = $currency->id;
+            $payment->status = $result->getStatus();
+            $payment->customer_id = isset($customer->id) ? $customer->id : null;
+            $payment->cart_id = $cart->id;
+            $payment->save();
+
             if ($result->getStatus() == 'pending') {
                 Tools::redirect($result->getUrl());
             } else {

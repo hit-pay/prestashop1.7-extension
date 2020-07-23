@@ -46,6 +46,16 @@ class HitPayPayment extends ObjectModel
     public $id_shop_default;
 
     /**
+     * @var string
+     */
+    public $status;
+
+    /**
+     * @var int
+     */
+    public $customer_id;
+
+    /**
      * @var array
      */
     public static $definition = array(
@@ -61,7 +71,14 @@ class HitPayPayment extends ObjectModel
             //lang fields
             'payment_id' => array(
                 'type' => self::TYPE_STRING,
-                'lang' => true,
+                'shop' => true,
+                'required' => true,
+                'validate' => 'isString',
+                'size' => 255,
+            ),
+            'status' => array(
+                'type' => self::TYPE_STRING,
+                'shop' => true,
                 'validate' => 'isString',
                 'size' => 255,
             ),
@@ -69,7 +86,6 @@ class HitPayPayment extends ObjectModel
             'cart_id' => array(
                 'type' => self::TYPE_STRING,
                 'shop' => true,
-                'required' => true,
                 'validate' => 'isInt',
                 'size' => 20
             ),
@@ -84,7 +100,12 @@ class HitPayPayment extends ObjectModel
                 'type' => self::TYPE_INT,
                 'shop' => true,
                 'validate' => 'isInt',
-                'required' => true,
+                'size' => 10
+            ),
+            'customer_id' => array(
+                'type' => self::TYPE_INT,
+                'shop' => true,
+                'validate' => 'isInt',
                 'size' => 10
             ),
         ),
@@ -150,18 +171,20 @@ class HitPayPayment extends ObjectModel
      * @param $id
      * @return array|bool
      */
-    public static function getPaymentById($id)
+    public static function getById($id)
     {
         $shop_id = Context::getContext()->shop->id;
 
-        return Db::getInstance()->executeS(
-            ' SELECT * FROM '
+        $id = Db::getInstance()->getValue(
+            ' SELECT prsps.' . self::$definition['primary'] . ' FROM '
             . _DB_PREFIX_ . static::$definition['table'] . ' AS prsp'
             . ' LEFT JOIN ' . _DB_PREFIX_ . self::$definition['table'] . '_shop AS prsps '
             . ' ON (prsps.' . self::$definition['primary'] . ' = prsp.' . self::$definition['primary'] . ' '
             . ' AND prsps.`id_shop` = ' . (int)$shop_id . ')'
-            . ' WHERE prsps.payment_id = ' . pSQL($id)
+            . ' WHERE prsps.payment_id = "' . pSQL($id) . '"'
         );
+
+        return new HitPayPayment($id, null, $shop_id);
     }
 
     /**
@@ -175,9 +198,11 @@ class HitPayPayment extends ObjectModel
             . '`' . self::$definition['primary'] . '` INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT, '
             . '`id_shop_default` INT(11) NOT NULL, '
             . '`payment_id` CHAR(255) NOT NULL, '
+            . '`status` CHAR(255) NOT NULL, '
             . '`cart_id` INT(11) NOT NULL, '
             . '`amount` DECIMAL(20, 6) NOT NULL, '
             . '`currency_id` INT(11) NOT NULL, '
+            . '`customer_id` INT(11) NOT NULL, '
             . '`date_add` TIMESTAMP, '
             . '`date_upd` TIMESTAMP '
             . ') ENGINE=' . _MYSQL_ENGINE_ . ' CHARACTER SET=UTF8;';
@@ -186,9 +211,11 @@ class HitPayPayment extends ObjectModel
             . '`' . self::$definition['primary'] . '` INT(11) NOT NULL, '
             . '`id_shop` INT(11) NOT NULL, '
             . '`payment_id` CHAR(255) NOT NULL, '
+            . '`status` CHAR(255) NOT NULL, '
             . '`cart_id` INT(11) NOT NULL, '
             . '`amount` DECIMAL(20, 6) NOT NULL, '
             . '`currency_id` INT(11) NOT NULL, '
+            . '`customer_id` INT(11) NOT NULL, '
             . 'UNIQUE KEY ' . self::$definition['table'] . '_shop (`' . self::$definition['primary'] . '`, `id_shop`) '
             . ') ENGINE=' . _MYSQL_ENGINE_ . ' CHARACTER SET=UTF8;';
 
