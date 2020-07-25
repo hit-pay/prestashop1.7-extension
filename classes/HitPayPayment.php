@@ -193,7 +193,6 @@ class HitPayPayment extends ObjectModel
             . ' ON (prsps.' . self::$definition['primary'] . ' = prsp.' . self::$definition['primary'] . ' '
             . ' AND prsps.`id_shop` = ' . (int)$shop_id . ')'
             . ' WHERE prsps.payment_id = "' . pSQL($id) . '"'
-            . ' AND prsps.is_paid = 0'
         );
 
         return new HitPayPayment($id, null, $shop_id);

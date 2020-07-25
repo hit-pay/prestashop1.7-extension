@@ -24,7 +24,34 @@
 *}
 
 <div class="panel">
-	<p class="text-muted">
-		Create your own module's template :)
-	</p>
+	<div class="row hitpay-header">
+
+	</div>
+
+	<hr />
+	
+	<div class="hitpay-content">
+		<div class="row">
+			<div class="col-md-6">
+				<h5>{l s='My payment module offers the following benefits' mod='hitpay'}</h5>
+				<img src="{$module_dir|escape:'html':'UTF-8'}views/img/Acceptance Marks Copy 4.png" class="col-xs-6 col-md-4 text-center" id="" />
+				<img src="{$module_dir|escape:'html':'UTF-8'}views/img/Acceptance Marks Copy 5.png" class="col-xs-6 col-md-4 text-center" id="" />
+				<img src="{$module_dir|escape:'html':'UTF-8'}views/img/Acceptance Marks Copy 6.png" class="col-xs-6 col-md-4 text-center" id="" />
+			</div>
+			
+			<div class="col-md-6">
+				<h5>{l s='FREE My Payment Module Glocal Gateway (Value of 400$)' mod='hitpay'}</h5>
+
+			</div>
+		</div>
+
+		<hr />
+		
+		<div class="row">
+			<div class="col-md-12">
+				<h4>{l s='Accept payments in the United States using all major credit cards' mod='hitpay'}</h4>
+
+			</div>
+		</div>
+	</div>
 </div>

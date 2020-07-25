@@ -133,10 +133,11 @@ class Hitpay extends PaymentModule
         }
 
         $this->context->smarty->assign('module_dir', $this->_path);
+        $this->context->smarty->assign('settings_api_form', $this->renderForm());
 
         $output = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
 
-//        return $output.$this->renderForm();
+//        return $output;
         return $this->renderForm();
     }
 
@@ -217,6 +218,32 @@ class Hitpay extends PaymentModule
                         'name' => 'HITPAY_ACCOUNT_SALT',
                         'label' => $this->l('Salt'),
                     ),
+                    array(
+                        'type' => 'checkbox',
+                        'name' => 'HITPAY_PAYMENTS',
+                        'label' => $this->l('Payment Methods'),
+                        'values' => array(
+                            'query' => array(
+                                array(
+                                    'id' => 'paynow_online',
+                                    'name' => "<img src='" . $this->_path . "/views/img/Acceptance Marks Copy 4.png'/>",
+                                    'val' => '1'
+                                ),
+                                array(
+                                    'id' => 'card',
+                                    'name' => "<img src='" . $this->_path . "/views/img/Acceptance Marks Copy 5.png'/>",
+                                    'val' => '2'
+                                ),
+                                array(
+                                    'id' => 'wechat',
+                                    'name' => "<img src='" . $this->_path . "/views/img/Acceptance Marks Copy 6.png'/>",
+                                    'val' => '3'
+                                ),
+                            ),
+                            'id' => 'id',
+                            'name' => 'name'
+                        )
+                    ),
                 ),
                 'submit' => array(
                     'title' => $this->l('Save'),
@@ -235,6 +262,9 @@ class Hitpay extends PaymentModule
             /*'HITPAY_ACCOUNT_EMAIL' => Configuration::get('HITPAY_ACCOUNT_EMAIL'),*/
             'HITPAY_ACCOUNT_API_KEY' => Configuration::get('HITPAY_ACCOUNT_API_KEY'),
             'HITPAY_ACCOUNT_SALT' => Configuration::get('HITPAY_ACCOUNT_SALT'),
+            'HITPAY_PAYMENTS_paynow_online' => Configuration::get('HITPAY_PAYMENTS_paynow_online'),
+            'HITPAY_PAYMENTS_card' => Configuration::get('HITPAY_PAYMENTS_card'),
+            'HITPAY_PAYMENTS_wechat' => Configuration::get('HITPAY_PAYMENTS_wechat'),
         );
     }
 
@@ -283,6 +313,10 @@ class Hitpay extends PaymentModule
             return false;
 
         $this->smarty->assign('module_dir', $this->_path);
+
+        $this->smarty->assign('paynow_online', Configuration::get('HITPAY_PAYMENTS_paynow_online'));
+        $this->smarty->assign('card', Configuration::get('HITPAY_PAYMENTS_card'));
+        $this->smarty->assign('wechat', Configuration::get('HITPAY_PAYMENTS_wechat'));
 
         return $this->display(__FILE__, 'views/templates/hook/payment.tpl');
     }

@@ -77,7 +77,8 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
              */
             $saved_payment = HitPayPayment::getById($payment_id);
             if ($saved_payment->status == 'completed'
-                && $saved_payment->amount == $cart->getOrderTotal()) {
+                && $saved_payment->amount == $cart->getOrderTotal()
+                && !$saved_payment->is_paid) {
                 $result = $hitpay_client->getPaymentStatus($payment_id);
 
                 if ($result->getStatus() == 'completed') {
@@ -107,9 +108,11 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
             } else {
                 throw new \Exception(
                     sprintf(
-                        'HitPay: amount is %s, status is %s',
+                        'HitPay: payment id: %s, amount is %s, status is %s, is paid: %s',
+                        $saved_payment->payment_id,
                         $saved_payment->amount,
-                        $saved_payment->status
+                        $saved_payment->status,
+                        $saved_payment->is_paid ? 'yes' : 'no'
                     )
                 );
             }

@@ -24,19 +24,24 @@
 *}
 
 {if (isset($status) == true) && ($status == 'ok')}
-<h3>{l s='Your order on %s is complete.' sprintf=$shop_name mod='hitpay'}</h3>
-<p>
-	<br />- {l s='Amount' mod='hitpay'} : <span class="price"><strong>{$total|escape:'htmlall':'UTF-8'}</strong></span>
-	<br />- {l s='Reference' mod='hitpay'} : <span class="reference"><strong>{$reference|escape:'html':'UTF-8'}</strong></span>
-	<br /><br />{l s='An email has been sent with this information.' mod='hitpay'}
-	<br /><br />{l s='If you have questions, comments or concerns, please contact our' mod='hitpay'} <a href="{$link->getPageLink('contact', true)|escape:'html':'UTF-8'}">{l s='expert customer support team.' mod='hitpay'}</a>
-</p>
+    <h3>{l s='Your order on %s is complete.' sprintf=$shop_name mod='hitpay'}</h3>
+    <p>
+        <br/>- {l s='Amount' mod='hitpay'} : <span
+                class="price"><strong>{$total|escape:'htmlall':'UTF-8'}</strong></span>
+        <br/>- {l s='Reference' mod='hitpay'} : <span
+                class="reference"><strong>{$reference|escape:'html':'UTF-8'}</strong></span>
+        <br/><br/>{l s='An email has been sent with this information.' mod='hitpay'}
+        <br/><br/>{l s='If you have questions, comments or concerns, please contact our' mod='hitpay'} <a
+                href="{$link->getPageLink('contact', true)|escape:'html':'UTF-8'}">{l s='expert customer support team.' mod='hitpay'}</a>
+    </p>
 {else}
-<h3>{l s='Your order on %s has not been accepted.' sprintf=$shop_name mod='hitpay'}</h3>
-<p>
-	<br />- {l s='Reference' mod='hitpay'} <span class="reference"> <strong>{$reference|escape:'html':'UTF-8'}</strong></span>
-	<br /><br />{l s='Please, try to order again.' mod='hitpay'}
-	<br /><br />{l s='If you have questions, comments or concerns, please contact our' mod='hitpay'} <a href="{$link->getPageLink('contact', true)|escape:'html':'UTF-8'}">{l s='expert customer support team.' mod='hitpay'}</a>
-</p>
+    <h3>{l s='Your order on %s has not been accepted.' sprintf=$shop_name mod='hitpay'}</h3>
+    <p>
+        <br/>- {l s='Reference' mod='hitpay'} <span
+                class="reference"> <strong>{$reference|escape:'html':'UTF-8'}</strong></span>
+        <br/><br/>{l s='Please, try to order again.' mod='hitpay'}
+        <br/><br/>{l s='If you have questions, comments or concerns, please contact our' mod='hitpay'} <a
+                href="{$link->getPageLink('contact', true)|escape:'html':'UTF-8'}">{l s='expert customer support team.' mod='hitpay'}</a>
+    </p>
 {/if}
-<hr />
+<hr/>
