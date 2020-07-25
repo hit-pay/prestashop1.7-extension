@@ -76,16 +76,23 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
              * @var HitPayPayment $hitpay_payment
              */
             $saved_payment = HitPayPayment::getById($payment_id);
-            if ($saved_payment->status == 'completed' && $saved_payment->amount == $cart->getOrderTotal()) {
+            if ($saved_payment->status == 'completed'
+                && $saved_payment->amount == $cart->getOrderTotal()) {
                 $result = $hitpay_client->getPaymentStatus($payment_id);
+
                 if ($result->getStatus() == 'completed') {
                     $payments = $result->getPayments();
                     $payment = array_shift($payments);
                     if ($payment->status == 'succeeded') {
                         $transaction_id = $payment->id;
-                    } /*else {
-                        throw new \Exception(sprintf('HitPay: sent payment status is %s', $payment->status));
-                    }*/
+                    } else {
+                        throw new \Exception(
+                            sprintf(
+                                'HitPay: sent payment status is %s',
+                                $payment->status
+                            )
+                        );
+                    }
                     $saved_payment->is_paid = true;
                     $saved_payment->save();
 
@@ -98,7 +105,13 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
                     throw new \Exception(sprintf('HitPay: sent status is %s', $result->getStatus()));
                 }
             } else {
-                throw new \Exception(sprintf('HitPay: amount is %s, status is %s', $payment->amount, $payment->status));
+                throw new \Exception(
+                    sprintf(
+                        'HitPay: amount is %s, status is %s',
+                        $saved_payment->amount,
+                        $saved_payment->status
+                    )
+                );
             }
         } catch (\Exception $e) {
             PrestaShopLogger::addLog(
