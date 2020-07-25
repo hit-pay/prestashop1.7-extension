@@ -72,17 +72,23 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
                 Configuration::get('HITPAY_LIVE_MODE')
             );
             $payment_id = Tools::getValue('reference');
-            $payment = HitPayPayment::getById($payment_id);
-            if ($payment->status == 'completed' && $payment->amount == $cart->getOrderTotal()) {
+            /**
+             * @var HitPayPayment $hitpay_payment
+             */
+            $saved_payment = HitPayPayment::getById($payment_id);
+            if ($saved_payment->status == 'completed' && $saved_payment->amount == $cart->getOrderTotal()) {
                 $result = $hitpay_client->getPaymentStatus($payment_id);
                 if ($result->getStatus() == 'completed') {
-                    /*$payments = $result->getPayments();
+                    $payments = $result->getPayments();
                     $payment = array_shift($payments);
                     if ($payment->status == 'succeeded') {
                         $transaction_id = $payment->id;
-                    } else {
+                    } /*else {
                         throw new \Exception(sprintf('HitPay: sent payment status is %s', $payment->status));
                     }*/
+                    $saved_payment->is_paid = true;
+                    $saved_payment->save();
+
                     $payment_status = Configuration::get('PS_OS_PAYMENT');
                 } elseif ($result->getStatus() == 'failed') {
                     $payment_status = Configuration::get('PS_OS_ERROR');

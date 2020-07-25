@@ -56,6 +56,11 @@ class HitPayPayment extends ObjectModel
     public $customer_id;
 
     /**
+     * @var bool
+     */
+    public $is_paid;
+
+    /**
      * @var array
      */
     public static $definition = array(
@@ -106,6 +111,12 @@ class HitPayPayment extends ObjectModel
                 'type' => self::TYPE_INT,
                 'shop' => true,
                 'validate' => 'isInt',
+                'size' => 10
+            ),
+            'is_paid' => array(
+                'type' => self::TYPE_BOOL,
+                'shop' => true,
+                'validate' => 'isBool',
                 'size' => 10
             ),
         ),
@@ -182,6 +193,7 @@ class HitPayPayment extends ObjectModel
             . ' ON (prsps.' . self::$definition['primary'] . ' = prsp.' . self::$definition['primary'] . ' '
             . ' AND prsps.`id_shop` = ' . (int)$shop_id . ')'
             . ' WHERE prsps.payment_id = "' . pSQL($id) . '"'
+            . ' AND prsps.is_paid = 0'
         );
 
         return new HitPayPayment($id, null, $shop_id);
@@ -203,6 +215,7 @@ class HitPayPayment extends ObjectModel
             . '`amount` DECIMAL(20, 6) NOT NULL, '
             . '`currency_id` INT(11) NOT NULL, '
             . '`customer_id` INT(11) NOT NULL, '
+            . '`is_paid` BOOL NOT NULL DEFAULT 0, '
             . '`date_add` TIMESTAMP, '
             . '`date_upd` TIMESTAMP '
             . ') ENGINE=' . _MYSQL_ENGINE_ . ' CHARACTER SET=UTF8;';
@@ -216,6 +229,7 @@ class HitPayPayment extends ObjectModel
             . '`amount` DECIMAL(20, 6) NOT NULL, '
             . '`currency_id` INT(11) NOT NULL, '
             . '`customer_id` INT(11) NOT NULL, '
+            . '`is_paid` BOOL NOT NULL DEFAULT 0, '
             . 'UNIQUE KEY ' . self::$definition['table'] . '_shop (`' . self::$definition['primary'] . '`, `id_shop`) '
             . ') ENGINE=' . _MYSQL_ENGINE_ . ' CHARACTER SET=UTF8;';
 
