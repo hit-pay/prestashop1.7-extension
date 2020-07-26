@@ -82,18 +82,19 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
                 $result = $hitpay_client->getPaymentStatus($payment_id);
 
                 if ($result->getStatus() == 'completed') {
-                    $payments = $result->getPayments();
-                    $payment = array_shift($payments);
-                    if ($payment->status == 'succeeded') {
-                        $transaction_id = $payment->id;
-                    } /*else {
-                        throw new \Exception(
-                            sprintf(
-                                'HitPay: sent payment status is %s',
-                                $payment->status
-                            )
-                        );
-                    }*/
+                    if ($payments = $result->getPayments()) {
+                        $payment = array_shift($payments);
+                        if ($payment->status == 'succeeded') {
+                            $transaction_id = $payment->id;
+                        } /*else {
+                            throw new \Exception(
+                                sprintf(
+                                    'HitPay: sent payment status is %s',
+                                    $payment->status
+                                )
+                            );
+                        }*/
+                    }
                     $saved_payment->is_paid = true;
                     $saved_payment->save();
 
