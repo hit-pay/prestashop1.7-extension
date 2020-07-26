@@ -59,11 +59,11 @@ class Hitpay extends PaymentModule
         $this->displayName = $this->l('HitPay');
         $this->description = $this->l('HitPay provides a seamless payment experience for your customers and an easy integration process for the developers. Hitpay payment works by creating Payment Request and then the customers accepting the Payment Request.');
 
-        $this->limited_countries = array('FR');
+        /*$this->limited_countries = array('FR');*/
 
         $this->limited_currencies = array('EUR', 'SGD');
 
-        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
+        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => '1.6.1.9');
     }
 
     /**
@@ -309,8 +309,8 @@ class Hitpay extends PaymentModule
         $currency_id = $params['cart']->id_currency;
         $currency = new Currency((int)$currency_id);
 
-        if (in_array($currency->iso_code, $this->limited_currencies) == false)
-            return false;
+        /*if (in_array($currency->iso_code, $this->limited_currencies) == false)
+            return false;*/
 
         $this->smarty->assign('module_dir', $this->_path);
 
