@@ -74,9 +74,12 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
         }
 
         if ($secure_key != $customer->secure_key) {
-            $this->errors[] = $this->module->l('An error occured. Please contact the merchant to have more informations');
 
-            return $this->setTemplate('error.tpl');
+            $this->context->smarty->assign('errors', array($this->module->l('An error occured. Please contact the merchant to have more informations')));
+
+            return $this->setTemplate('module:hitpay/views/templates/front/error.tpl');
         }
+
+        exit;
     }
 }

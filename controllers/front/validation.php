@@ -1,84 +1,137 @@
 <?php
 /**
-* 2007-2020 PrestaShop
-*
-* NOTICE OF LICENSE
-*
-* This source file is subject to the Academic Free License (AFL 3.0)
-* that is bundled with this package in the file LICENSE.txt.
-* It is also available through the world-wide-web at this URL:
-* http://opensource.org/licenses/afl-3.0.php
-* If you did not receive a copy of the license and are unable to
-* obtain it through the world-wide-web, please send an email
-* to license@prestashop.com so we can send you a copy immediately.
-*
-* DISCLAIMER
-*
-* Do not edit or add to this file if you wish to upgrade PrestaShop to newer
-* versions in the future. If you wish to customize PrestaShop for your
-* needs please refer to http://www.prestashop.com for more information.
-*
-*  @author    PrestaShop SA <contact@prestashop.com>
-*  @copyright 2007-2020 PrestaShop SA
-*  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*  International Registered Trademark & Property of PrestaShop SA
-*/
+ * 2007-2020 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to http://www.prestashop.com for more information.
+ *
+ * @author    PrestaShop SA <contact@prestashop.com>
+ * @copyright 2007-2020 PrestaShop SA
+ * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  International Registered Trademark & Property of PrestaShop SA
+ */
+
+require_once _PS_MODULE_DIR_ . 'hitpay/classes/HitPayPayment.php';
+
+use HitPay\Client;
+use HitPay\Request\CreatePayment;
+
 class HitpayValidationModuleFrontController extends ModuleFrontController
 {
     /**
-     * This class should be use by your Instant Payment
-     * Notification system to validate the order remotely
+     * Do whatever you have to before redirecting the customer on the website of your payment processor.
      */
     public function postProcess()
     {
-        /*
-         * If the module is not active anymore, no need to process anything.
-         */
-        if ($this->module->active == false) {
-            die;
-        }
 
-        /**
-         * Since it is an example, we choose sample data,
-         * You'll have to get the correct values :)
-         */
-        $cart_id = 1;
-        $customer_id = 1;
-        $amount = 100.00;
-
-        /*
-         * Restore the context from the $cart_id & the $customer_id to process the validation properly.
-         */
-        Context::getContext()->cart = new Cart((int) $cart_id);
-        Context::getContext()->customer = new Customer((int) $customer_id);
-        Context::getContext()->currency = new Currency((int) Context::getContext()->cart->id_currency);
-        Context::getContext()->language = new Language((int) Context::getContext()->customer->id_lang);
-
-        $secure_key = Context::getContext()->customer->secure_key;
-
-        if ($this->isValidOrder() === true) {
-            $payment_status = Configuration::get('PS_OS_PAYMENT');
-            $message = null;
-        } else {
-            $payment_status = Configuration::get('PS_OS_ERROR');
+        try {
+            /**
+             * @var CartCore $cart
+             */
+            $cart = Context::getContext()->cart;
 
             /**
-             * Add a message to explain why the order has not been validated
+             * @var CurrencyCore $currency
              */
-            $message = $this->module->l('An error occurred while processing payment');
+            $currency = Context::getContext()->currency;
+
+            $hitpay_client = new Client(
+                Configuration::get('HITPAY_ACCOUNT_API_KEY'),
+                Configuration::get('HITPAY_LIVE_MODE')
+            );
+            $redirect_url = Context::getContext()->link->getModuleLink(
+                'hitpay',
+                'confirmation',
+                [
+                    'cart_id' => $cart->id,
+                    'secure_key' => Context::getContext()->customer->secure_key,
+                ],
+                true
+            );
+
+            $webhook = Context::getContext()->link->getModuleLink(
+                'hitpay',
+                'webhook',
+                [
+                    'cart_id' => $cart->id,
+                    'secure_key' => Context::getContext()->customer->secure_key,
+                ],
+                true
+            );
+
+            $create_payment_request = new CreatePayment();
+            $create_payment_request->setAmount($cart->getOrderTotal())
+                ->setCurrency($currency->iso_code)
+                ->setReferenceNumber($cart->id)
+                ->setWebhook($webhook)
+                ->setRedirectUrl($redirect_url);
+
+            /**
+             * @var Customer $customer
+             */
+            if ($customer = Context::getContext()->customer) {
+                $create_payment_request->setName($customer->firstname . ' ' . $customer->lastname);
+                $create_payment_request->setEmail($customer->email);
+            }
+
+            $result = $hitpay_client->createPayment($create_payment_request);
+
+            $payment = new HitPayPayment();
+            $payment->payment_id = $result->getId();
+            $payment->amount = $cart->getOrderTotal();
+            $payment->currency_id = $currency->id;
+            $payment->status = $result->getStatus();
+            $payment->customer_id = isset($customer->id) ? $customer->id : null;
+            $payment->cart_id = $cart->id;
+            $payment->save();
+
+            if ($result->getStatus() == 'pending') {
+                Tools::redirect($result->getUrl());
+            } else {
+                $message = sprintf('HitPay: sent status is %s', $result->getStatus());
+                throw new \Exception($message);
+            }
+        } catch (\Exception $e) {
+            PrestaShopLogger::addLog(
+                $e->getMessage(),
+                3,
+                null,
+                'HitPay'
+            );
+
+            return $this->displayError($this->module->l('Something went wrong, please contact the merchant'));
         }
-
-        $module_name = $this->module->displayName;
-        $currency_id = (int) Context::getContext()->currency->id;
-
-        return $this->module->validateOrder($cart_id, $payment_status, $amount, $module_name, $message, array(), $currency_id, false, $secure_key);
     }
 
-    protected function isValidOrder()
+    /**
+     * @param $message
+     * @param bool $description
+     * @return mixed
+     */
+    protected function displayError($message, $description = false)
     {
         /*
-         * Add your checks right there
+         * Create the breadcrumb for your ModuleFrontController.
          */
-        return true;
+        $this->context->smarty->assign('path', '
+			<a href="' . $this->context->link->getPageLink('order', null, null, 'step=3') . '">' . $this->module->l('Payment') . '</a>
+			<span class="navigation-pipe">&gt;</span>' . $this->module->l('Error'));
+
+        $this->context->smarty->assign('errors', array($this->module->l($message)));
+
+        return $this->setTemplate('module:hitpay/views/templates/front/error.tpl');
     }
 }

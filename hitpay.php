@@ -59,11 +59,9 @@ class Hitpay extends PaymentModule
         $this->displayName = $this->l('HitPay');
         $this->description = $this->l('HitPay provides a seamless payment experience for your customers and an easy integration process for the developers. Hitpay payment works by creating Payment Request and then the customers accepting the Payment Request.');
 
-        $this->limited_countries = array('FR');
-
         $this->limited_currencies = array('EUR', 'SGD');
 
-        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
+        $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
     }
 
     /**
@@ -102,8 +100,6 @@ class Hitpay extends PaymentModule
         return parent::install() &&
             $this->registerHook('header') &&
             $this->registerHook('backOfficeHeader') &&
-            $this->registerHook('payment') &&
-            $this->registerHook('paymentReturn') &&
             $this->registerHook('paymentOptions') &&
             $order_status->id &&
             HitPayPayment::install();
@@ -132,12 +128,6 @@ class Hitpay extends PaymentModule
             $this->postProcess();
         }
 
-        $this->context->smarty->assign('module_dir', $this->_path);
-        $this->context->smarty->assign('settings_api_form', $this->renderForm());
-
-        $output = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
-
-//        return $output;
         return $this->renderForm();
     }
 
@@ -200,18 +190,10 @@ class Hitpay extends PaymentModule
                             )
                         ),
                     ),
-                    /*array(
-                        'col' => 3,
-                        'type' => 'text',
-                        'prefix' => '<i class="icon icon-envelope"></i>',
-                        'desc' => $this->l('Enter a valid email address'),
-                        'name' => 'HITPAY_ACCOUNT_EMAIL',
-                        'label' => $this->l('Email'),
-                    ),*/
                     array(
                         'type' => 'password',
                         'name' => 'HITPAY_ACCOUNT_API_KEY',
-                        'label' => $this->l('Password'),
+                        'label' => $this->l('Api Key'),
                     ),
                     array(
                         'type' => 'password',
@@ -226,17 +208,17 @@ class Hitpay extends PaymentModule
                             'query' => array(
                                 array(
                                     'id' => 'paynow_online',
-                                    'name' => "<img src='" . $this->_path . "/views/img/Acceptance Marks Copy 4.png'/>",
+                                    'name' => "PayNow QR",
                                     'val' => '1'
                                 ),
                                 array(
                                     'id' => 'card',
-                                    'name' => "<img src='" . $this->_path . "/views/img/Acceptance Marks Copy 5.png'/>",
+                                    'name' => "Credit cards",
                                     'val' => '2'
                                 ),
                                 array(
                                     'id' => 'wechat',
-                                    'name' => "<img src='" . $this->_path . "/views/img/Acceptance Marks Copy 6.png'/>",
+                                    'name' => "WeChatPay and AliPay",
                                     'val' => '3'
                                 ),
                             ),
@@ -301,50 +283,6 @@ class Hitpay extends PaymentModule
     }
 
     /**
-     * This method is used to render the payment button,
-     * Take care if the button should be displayed or not.
-     */
-    public function hookPayment($params)
-    {
-        $currency_id = $params['cart']->id_currency;
-        $currency = new Currency((int)$currency_id);
-
-        if (in_array($currency->iso_code, $this->limited_currencies) == false)
-            return false;
-
-        $this->smarty->assign('module_dir', $this->_path);
-
-        $this->smarty->assign('paynow_online', Configuration::get('HITPAY_PAYMENTS_paynow_online'));
-        $this->smarty->assign('card', Configuration::get('HITPAY_PAYMENTS_card'));
-        $this->smarty->assign('wechat', Configuration::get('HITPAY_PAYMENTS_wechat'));
-
-        return $this->display(__FILE__, 'views/templates/hook/payment.tpl');
-    }
-
-    /**
-     * This hook is used to display the order confirmation page.
-     */
-    public function hookPaymentReturn($params)
-    {
-        if ($this->active == false)
-            return;
-
-        $order = $params['objOrder'];
-
-        if ($order->getCurrentOrderState()->id != Configuration::get('PS_OS_ERROR'))
-            $this->smarty->assign('status', 'ok');
-
-        $this->smarty->assign(array(
-            'id_order' => $order->id,
-            'reference' => $order->reference,
-            'params' => $params,
-            'total' => Tools::displayPrice($params['total_to_pay'], $params['currencyObj'], false),
-        ));
-
-        return $this->display(__FILE__, 'views/templates/hook/confirmation.tpl');
-    }
-
-    /**
      * Return payment options available for PS 1.7+
      *
      * @param array Hook parameters
@@ -359,8 +297,25 @@ class Hitpay extends PaymentModule
         if (!$this->checkCurrency($params['cart'])) {
             return;
         }
+        $button_text = '';
+        if (Configuration::get('HITPAY_PAYMENTS_paynow_online')) {
+            $button_text .= 'PayNow QR, ';
+        }
+        if (Configuration::get('HITPAY_PAYMENTS_card')) {
+            $title = 'Credit cards, ';
+            if (!empty($button_text)) {
+                $title = strtolower($title);
+            }
+            $button_text .= $title;
+        }
+        if (Configuration::get('HITPAY_PAYMENTS_wechat')) {
+            $button_text .= 'WeChatPay and AliPay';
+        }
+
+        trim($button_text, ', ');
+
         $option = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
-        $option->setCallToActionText($this->l('Pay offline'))
+        $option->setCallToActionText($this->l($button_text))
             ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true));
 
         return [

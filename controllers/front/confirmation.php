@@ -82,18 +82,19 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
                 $result = $hitpay_client->getPaymentStatus($payment_id);
 
                 if ($result->getStatus() == 'completed') {
-                    $payments = $result->getPayments();
-                    $payment = array_shift($payments);
-                    if ($payment->status == 'succeeded') {
-                        $transaction_id = $payment->id;
-                    } /*else {
-                        throw new \Exception(
-                            sprintf(
-                                'HitPay: sent payment status is %s',
-                                $payment->status
-                            )
-                        );
-                    }*/
+                    if ($payments = $result->getPayments()) {
+                        $payment = array_shift($payments);
+                        if ($payment->status == 'succeeded') {
+                            $transaction_id = $payment->id;
+                        } /*else {
+                            throw new \Exception(
+                                sprintf(
+                                    'HitPay: sent payment status is %s',
+                                    $payment->status
+                                )
+                            );
+                        }*/
+                    }
                     $saved_payment->is_paid = true;
                     $saved_payment->save();
 
@@ -124,9 +125,14 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
                 'HitPay'
             );
 
-            $this->errors[] = $this->module->l('Something went wrong, please contact the merchant');
+            $this->context->smarty->assign(
+                'errors',
+                array(
+                    $this->module->l('Something went wrong, please contact the merchant')
+                )
+            );
 
-            return $this->setTemplate('error.tpl');
+            return $this->setTemplate('module:hitpay/views/templates/front/error.tpl');
         }
 
         /**
@@ -170,14 +176,14 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
                 . $secure_key
             );
         } else {
-            /*
-             * An error occured and is shown on a new page.
-             */
-            $this->errors[] = $this->module->l(
-                'An error occured. Please contact the merchant to have more informations'
+            $this->context->smarty->assign(
+                'errors',
+                array(
+                    $this->module->l('Something went wrong, please contact the merchant')
+                )
             );
 
-            return $this->setTemplate('error.tpl');
+            return $this->setTemplate('module:hitpay/views/templates/front/error.tpl');
         }
     }
 }
