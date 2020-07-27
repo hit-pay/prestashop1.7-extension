@@ -28,6 +28,8 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
+
 require_once _PS_MODULE_DIR_ . 'hitpay/vendor/autoload.php';
 require_once _PS_MODULE_DIR_ . 'hitpay/classes/HitPayPayment.php';
 
@@ -36,8 +38,6 @@ require_once _PS_MODULE_DIR_ . 'hitpay/classes/HitPayPayment.php';
  */
 class Hitpay extends PaymentModule
 {
-    protected $config_form = false;
-
     /**
      * Hitpay constructor.
      */
@@ -46,7 +46,7 @@ class Hitpay extends PaymentModule
         $this->name = 'hitpay';
         $this->tab = 'payments_gateways';
         $this->version = '1.0.0';
-        $this->author = 'Dzmitry Urbanovich';
+        $this->author = 'PrestaShop';
         $this->need_instance = 0;
 
         /**
@@ -57,11 +57,11 @@ class Hitpay extends PaymentModule
         parent::__construct();
 
         $this->displayName = $this->l('HitPay');
-        $this->description = $this->l('HitPay provides a seamless payment experience for your customers and an easy integration process for the developers. Hitpay payment works by creating Payment Request and then the customers accepting the Payment Request.');
+        $this->description = $this->l('HitPay allows merchants to accept secure PayNow QR, Credit Card, WeChatPay and AliPay payments.');
 
         $this->limited_currencies = array('EUR', 'SGD');
 
-        $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
+        $this->ps_versions_compliancy = array('min' => '1.7.1.0', 'max' => _PS_VERSION_);
     }
 
     /**
@@ -191,12 +191,12 @@ class Hitpay extends PaymentModule
                         ),
                     ),
                     array(
-                        'type' => 'password',
+                        'type' => 'text',
                         'name' => 'HITPAY_ACCOUNT_API_KEY',
                         'label' => $this->l('Api Key'),
                     ),
                     array(
-                        'type' => 'password',
+                        'type' => 'text',
                         'name' => 'HITPAY_ACCOUNT_SALT',
                         'label' => $this->l('Salt'),
                     ),
@@ -314,7 +314,7 @@ class Hitpay extends PaymentModule
 
         trim($button_text, ', ');
 
-        $option = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
+        $option = new PaymentOption();
         $option->setCallToActionText($this->l($button_text))
             ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true));
 

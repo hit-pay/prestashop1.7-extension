@@ -50,19 +50,18 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
         $cart = new Cart((int) $cart_id);
         $customer = new Customer((int) $cart->id_customer);
 
-        /*if (Client::generateSignatureArray(Configuration::get('HITPAY_ACCOUNT_SALT'), $_POST) == Tools::isSubmit('hmac')) {
-            $payment_request_id = Tools::getValue('payment_request_id');
-            if ($payment = HitPayPayment::getById($payment_request_id)) {
-                $payment->status = Tools::getValue('status');
-                $payment->save();
-            }
-        }*/
-
         try {
-            $payment_request_id = Tools::getValue('payment_request_id');
-            if ($payment = HitPayPayment::getById($payment_request_id)) {
-                $payment->status = Tools::getValue('status');
-                $payment->save();
+            $data = $_POST;
+            unset($data['hmac']);
+
+            if (Client::generateSignatureArray(Configuration::get('HITPAY_ACCOUNT_SALT'), $data) == Tools::getValue('hmac')) {
+                $payment_request_id = Tools::getValue('payment_request_id');
+                if ($payment = HitPayPayment::getById($payment_request_id)) {
+                    $payment->status = Tools::getValue('status');
+                    $payment->save();
+                }
+            } else {
+                throw new \Exception(sprinf('HitPay: hmac is not the same like generated'));
             }
         } catch (\Exeption $e) {
             PrestaShopLogger::addLog(

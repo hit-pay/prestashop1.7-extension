@@ -67,6 +67,7 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
         $transaction_id = null;
 
         try {
+            sleep(3);
             $hitpay_client = new Client(
                 Configuration::get('HITPAY_ACCOUNT_API_KEY'),
                 Configuration::get('HITPAY_LIVE_MODE')
