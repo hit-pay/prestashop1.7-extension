@@ -209,12 +209,12 @@ class Hitpay extends PaymentModule
                         'label' => $this->l('Email'),
                     ),*/
                     array(
-                        'type' => 'password',
+                        'type' => 'text',
                         'name' => 'HITPAY_ACCOUNT_API_KEY',
                         'label' => $this->l('Password'),
                     ),
                     array(
-                        'type' => 'password',
+                        'type' => 'text',
                         'name' => 'HITPAY_ACCOUNT_SALT',
                         'label' => $this->l('Salt'),
                     ),
