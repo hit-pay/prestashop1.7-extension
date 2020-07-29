@@ -261,7 +261,7 @@ class Hitpay extends PaymentModule
             'HITPAY_LIVE_MODE' => Configuration::get('HITPAY_LIVE_MODE'),
             /*'HITPAY_ACCOUNT_EMAIL' => Configuration::get('HITPAY_ACCOUNT_EMAIL'),*/
             'HITPAY_ACCOUNT_API_KEY' => Configuration::get('HITPAY_ACCOUNT_API_KEY'),
-            'HITPAY_ACCOUNT_SALT' => Configuration::get('HITPAY_ACCOUNT_SALT'),
+            'HITPAY_ACCOUNT_SALT' => base64_decode(Configuration::get('HITPAY_ACCOUNT_SALT')),
             'HITPAY_PAYMENTS_paynow_online' => Configuration::get('HITPAY_PAYMENTS_paynow_online'),
             'HITPAY_PAYMENTS_card' => Configuration::get('HITPAY_PAYMENTS_card'),
             'HITPAY_PAYMENTS_wechat' => Configuration::get('HITPAY_PAYMENTS_wechat'),
@@ -278,6 +278,8 @@ class Hitpay extends PaymentModule
         foreach (array_keys($form_values) as $key) {
             Configuration::updateValue($key, Tools::getValue($key));
         }
+
+        Configuration::updateValue('HITPAY_ACCOUNT_SALT', base64_encode(Tools::getValue('HITPAY_ACCOUNT_SALT')));
     }
 
     /**
