@@ -106,7 +106,7 @@ class HitpayRedirectModuleFrontController extends ModuleFrontController
             }
         } catch (\Exception $e) {
             PrestaShopLogger::addLog(
-                $e->getMessage(),
+                'HitPay: ' . $e->getMessage(),
                 3,
                 null,
                 'HitPay'

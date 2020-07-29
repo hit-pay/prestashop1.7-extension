@@ -46,7 +46,7 @@ class Hitpay extends PaymentModule
         $this->name = 'hitpay';
         $this->tab = 'payments_gateways';
         $this->version = '1.0.0';
-        $this->author = 'Dzmitry Urbanovich';
+        $this->author = 'hitpay';
         $this->need_instance = 0;
 
         /**
@@ -57,7 +57,7 @@ class Hitpay extends PaymentModule
         parent::__construct();
 
         $this->displayName = $this->l('HitPay');
-        $this->description = $this->l('HitPay provides a seamless payment experience for your customers and an easy integration process for the developers. Hitpay payment works by creating Payment Request and then the customers accepting the Payment Request.');
+        $this->description = $this->l('HitPay allows merchants to accept secure PayNow QR, Credit Card, WeChatPay and AliPay payments.');
 
         /*$this->limited_countries = array('FR');*/
 

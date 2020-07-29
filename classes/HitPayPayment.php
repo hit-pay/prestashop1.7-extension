@@ -21,6 +21,11 @@ class HitPayPayment extends ObjectModel
     public $cart_id;
 
     /**
+     * @var int $order_id
+     */
+    public $order_id;
+
+    /**
      * @var float $amount
      */
     public $amount;
@@ -87,8 +92,13 @@ class HitPayPayment extends ObjectModel
                 'validate' => 'isString',
                 'size' => 255,
             ),
-            //shop fields
             'cart_id' => array(
+                'type' => self::TYPE_STRING,
+                'shop' => true,
+                'validate' => 'isInt',
+                'size' => 20
+            ),
+            'order_id' => array(
                 'type' => self::TYPE_STRING,
                 'shop' => true,
                 'validate' => 'isInt',
@@ -180,7 +190,9 @@ class HitPayPayment extends ObjectModel
 
     /**
      * @param $id
-     * @return array|bool
+     * @return HitPayPayment
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public static function getById($id)
     {
@@ -200,6 +212,7 @@ class HitPayPayment extends ObjectModel
 
     /**
      * @return bool
+     * @throws PrestaShopException
      */
     protected function createTable()
     {
@@ -211,6 +224,7 @@ class HitPayPayment extends ObjectModel
             . '`payment_id` CHAR(255) NOT NULL, '
             . '`status` CHAR(255) NOT NULL, '
             . '`cart_id` INT(11) NOT NULL, '
+            . '`order_id` INT(11), '
             . '`amount` DECIMAL(20, 6) NOT NULL, '
             . '`currency_id` INT(11) NOT NULL, '
             . '`customer_id` INT(11) NOT NULL, '
@@ -225,6 +239,7 @@ class HitPayPayment extends ObjectModel
             . '`payment_id` CHAR(255) NOT NULL, '
             . '`status` CHAR(255) NOT NULL, '
             . '`cart_id` INT(11) NOT NULL, '
+            . '`order_id` INT(11), '
             . '`amount` DECIMAL(20, 6) NOT NULL, '
             . '`currency_id` INT(11) NOT NULL, '
             . '`customer_id` INT(11) NOT NULL, '
