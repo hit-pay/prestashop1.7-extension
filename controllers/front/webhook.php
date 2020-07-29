@@ -72,7 +72,8 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
             $data = $_POST;
             unset($data['hmac']);
 
-            if (Client::generateSignatureArray(Configuration::get('HITPAY_ACCOUNT_SALT'), $data) == Tools::getValue('hmac')) {
+            $salt = base64_decode(Configuration::get('HITPAY_ACCOUNT_SALT'));
+            if (Client::generateSignatureArray($salt, $data) == Tools::getValue('hmac')) {
                 $payment_request_id = Tools::getValue('payment_request_id');
                 /**
                  * @var HitPayPayment $hitpay_payment
@@ -141,7 +142,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                     }
                 }
             } else {
-                throw new \Exception(sprinf('HitPay: hmac is not the same like generated'));
+                throw new \Exception(sprintf('HitPay: hmac is not the same like generated'));
             }
         } catch (\Exeption $e) {
             PrestaShopLogger::addLog(
