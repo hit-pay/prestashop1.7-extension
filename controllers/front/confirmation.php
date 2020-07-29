@@ -56,7 +56,7 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
                 'An error occured. Please contact the merchant to have more informations'
             );
 
-            return $this->setTemplate('error.tpl');
+            return $this->setTemplate('module:hitpay/views/templates/front/error.tpl');
         }
 
         try {
