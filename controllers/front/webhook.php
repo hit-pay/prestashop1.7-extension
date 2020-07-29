@@ -34,7 +34,9 @@ use HitPay\Client;
 class HitpayWebhookModuleFrontController extends ModuleFrontController
 {
     /**
-     * @return bool
+     * @return bool|void
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function postProcess()
     {
@@ -50,33 +52,104 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
         $cart = new Cart((int) $cart_id);
         $customer = new Customer((int) $cart->id_customer);
 
+        if ($secure_key != $customer->secure_key) {
+            $this->context->smarty->assign(
+                'errors',
+                array(
+                    $this->module->l('An error occured. Please contact the merchant to have more informations')
+                )
+            );
+            return $this->setTemplate('module:hitpay/views/templates/front/error.tpl');
+        }
+
+        $payment_status = Configuration::get('HITPAY_WAITING_PAYMENT_STATUS'); // Default value for a payment that succeed.
+        $message = null; // You can add a comment directly into the order so the merchant will see it in the BO.
+        $transaction_id = null;
+        $module_name = $this->module->displayName;
+        $currency_id = (int) Context::getContext()->currency->id;
+
         try {
             $data = $_POST;
             unset($data['hmac']);
 
             if (Client::generateSignatureArray(Configuration::get('HITPAY_ACCOUNT_SALT'), $data) == Tools::getValue('hmac')) {
                 $payment_request_id = Tools::getValue('payment_request_id');
-                if ($payment = HitPayPayment::getById($payment_request_id)) {
-                    $payment->status = Tools::getValue('status');
-                    $payment->save();
+                /**
+                 * @var HitPayPayment $hitpay_payment
+                 */
+                if ($saved_payment = HitPayPayment::getById($payment_request_id)) {
+                    $saved_payment->status = Tools::getValue('status');
+
+                    if ($saved_payment->status == 'completed'
+                        && $saved_payment->amount == Tools::getValue('amount')
+                        && $saved_payment->cart_id == Tools::getValue('reference_number')
+                        && $saved_payment->currency_id == Currency::getIdByIsoCode(Tools::getValue('currency'))
+                        && !$saved_payment->is_paid) {
+                        $payment_status = Configuration::get('PS_OS_PAYMENT');
+                    } elseif ($saved_payment->status == 'failed') {
+                        $payment_status = Configuration::get('PS_OS_ERROR');
+                    } elseif ($saved_payment->status == 'pending') {
+                        $payment_status = Configuration::get('HITPAY_WAITING_PAYMENT_STATUS');
+                    } else {
+                        throw new \Exception(
+                            sprintf(
+                                'HitPay: payment id: %s, amount is %s, status is %s, is paid: %s',
+                                $saved_payment->payment_id,
+                                $saved_payment->amount,
+                                $saved_payment->status,
+                                $saved_payment->is_paid ? 'yes' : 'no'
+                            )
+                        );
+                    }
+
+                    $this->module->validateOrder(
+                        $cart_id,
+                        $payment_status,
+                        $cart->getOrderTotal(),
+                        $module_name,
+                        $message,
+                        array(
+                            'transaction_id' => $transaction_id
+                        ),
+                        $currency_id,
+                        false,
+                        $secure_key
+                    );
+
+                    $saved_payment->order_id = Order::getOrderByCartId((int) $cart->id);
+                    $saved_payment->is_paid = true;
+                    $saved_payment->save();
+
+                    $hitpay_client = new Client(
+                        Configuration::get('HITPAY_ACCOUNT_API_KEY'),
+                        Configuration::get('HITPAY_LIVE_MODE')
+                    );
+
+                    $result = $hitpay_client->getPaymentStatus($payment_request_id);
+
+                    if ($payments = $result->getPayments()) {
+                        $payment = array_shift($payments);
+                        if ($payment->status == 'succeeded') {
+                            $transaction_id = $payment->id;
+                        }
+
+                        $order_payments = OrderPayment::getByOrderId($saved_payment->order_id);
+                        if (isset($order_payments[0])) {
+                            $order_payments[0]->transaction_id = $transaction_id;
+                            $order_payments[0]->save();
+                        }
+                    }
                 }
             } else {
                 throw new \Exception(sprinf('HitPay: hmac is not the same like generated'));
             }
         } catch (\Exeption $e) {
             PrestaShopLogger::addLog(
-                $e->getMessage(),
+                'HitPay: ' . $e->getMessage(),
                 3,
                 null,
                 'HitPay'
             );
-        }
-
-        if ($secure_key != $customer->secure_key) {
-
-            $this->context->smarty->assign('errors', array($this->module->l('An error occured. Please contact the merchant to have more informations')));
-
-            return $this->setTemplate('module:hitpay/views/templates/front/error.tpl');
         }
 
         exit;
