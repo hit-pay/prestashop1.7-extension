@@ -45,6 +45,9 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
             return false;
         }
 
+        //todo it will need to remove
+        sleep(3);
+
         $cart_id = Tools::getValue('cart_id');
         $secure_key = Tools::getValue('secure_key');
 
