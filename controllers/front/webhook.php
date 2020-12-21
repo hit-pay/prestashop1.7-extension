@@ -46,6 +46,15 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
             return false;
         }
 
+        file_put_contents(
+            _PS_ROOT_DIR_ . '/log.txt',
+            "\n" . print_r('webhook: ', true) .
+            "\n" . print_r($_POST, true) .
+            "\n\nfile: " . __FILE__ .
+            "\n\nline: " . __LINE__ .
+            "\n\ntime: " . date('d-m-Y H:i:s'), 8
+        );
+
         $cart_id = Tools::getValue('cart_id');
         $secure_key = Tools::getValue('secure_key');
 
@@ -103,7 +112,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                         );
                     }
 
-                    $order_id = Order::getOrderByCartId((int) $cart->id);
+                    $order_id = Order::getIdByCartId((int) $cart->id);
                     if (!$order_id) {
                         $this->module->validateOrder(
                             $cart_id,
@@ -119,10 +128,15 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                             $secure_key
                         );
 
-                        $saved_payment->order_id = $order_id;
+                        $saved_payment->order_id = Order::getIdByCartId((int) $cart->id);
                         $saved_payment->is_paid = true;
                         $saved_payment->save();
+                    } else {
+                        $order_history = new OrderHistory();
+                        $order_history->changeIdOrderState($payment_status, $order_id);
+                    }
 
+                    if ($order_id) {
                         $hitpay_client = new Client(
                             Configuration::get('HITPAY_ACCOUNT_API_KEY'),
                             Configuration::get('HITPAY_LIVE_MODE')
@@ -143,6 +157,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                             }
                         }
                     }
+
                 } else {
                     throw new \Exception(
                         sprintf(

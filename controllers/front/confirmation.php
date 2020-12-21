@@ -68,6 +68,17 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
              * @var HitPayPayment $hitpay_payment
              */
             $saved_payment = HitPayPayment::getById($payment_id);
+
+            file_put_contents(
+                _PS_ROOT_DIR_ . '/log.txt',
+                "\n" . print_r('confirmation: ', true) .
+                "\n" . print_r($_GET, true) .
+                "\n" . print_r($saved_payment, true) .
+                "\n\nfile: " . __FILE__ .
+                "\n\nline: " . __LINE__ .
+                "\n\ntime: " . date('d-m-Y H:i:s'), 8
+            );
+
             if ($saved_payment->status == 'completed'
                 && $saved_payment->amount == $cart->getOrderTotal()
                 && $saved_payment->is_paid
