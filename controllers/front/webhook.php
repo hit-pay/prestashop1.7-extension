@@ -103,23 +103,26 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                         );
                     }
 
-                    $this->module->validateOrder(
-                        $cart_id,
-                        $payment_status,
-                        $cart->getOrderTotal(),
-                        $module_name,
-                        $message,
-                        array(
-                            'transaction_id' => $transaction_id
-                        ),
-                        $currency_id,
-                        false,
-                        $secure_key
-                    );
+                    $order_id = Order::getOrderByCartId((int) $cart->id);
+                    if (!$order_id) {
+                        $this->module->validateOrder(
+                            $cart_id,
+                            $payment_status,
+                            $cart->getOrderTotal(),
+                            $module_name,
+                            $message,
+                            array(
+                                'transaction_id' => $transaction_id
+                            ),
+                            $currency_id,
+                            false,
+                            $secure_key
+                        );
 
-                    $saved_payment->order_id = Order::getOrderByCartId((int) $cart->id);
-                    $saved_payment->is_paid = true;
-                    $saved_payment->save();
+                        $saved_payment->order_id = $order_id;
+                        $saved_payment->is_paid = true;
+                        $saved_payment->save();
+                    }
 
                     $hitpay_client = new Client(
                         Configuration::get('HITPAY_ACCOUNT_API_KEY'),
@@ -140,6 +143,13 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                             $order_payments[0]->save();
                         }
                     }
+                } else {
+                    throw new \Exception(
+                        sprintf(
+                            'HitPay has not the payment request id: %s',
+                            $payment_request_id
+                        )
+                    );
                 }
             } else {
                 throw new \Exception(sprintf('HitPay: hmac is not the same like generated'));
