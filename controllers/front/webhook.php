@@ -122,25 +122,25 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                         $saved_payment->order_id = $order_id;
                         $saved_payment->is_paid = true;
                         $saved_payment->save();
-                    }
 
-                    $hitpay_client = new Client(
-                        Configuration::get('HITPAY_ACCOUNT_API_KEY'),
-                        Configuration::get('HITPAY_LIVE_MODE')
-                    );
+                        $hitpay_client = new Client(
+                            Configuration::get('HITPAY_ACCOUNT_API_KEY'),
+                            Configuration::get('HITPAY_LIVE_MODE')
+                        );
 
-                    $result = $hitpay_client->getPaymentStatus($payment_request_id);
+                        $result = $hitpay_client->getPaymentStatus($payment_request_id);
 
-                    if ($payments = $result->getPayments()) {
-                        $payment = array_shift($payments);
-                        if ($payment->status == 'succeeded') {
-                            $transaction_id = $payment->id;
-                        }
+                        if ($payments = $result->getPayments()) {
+                            $payment = array_shift($payments);
+                            if ($payment->status == 'succeeded') {
+                                $transaction_id = $payment->id;
+                            }
 
-                        $order_payments = OrderPayment::getByOrderId($saved_payment->order_id);
-                        if (isset($order_payments[0])) {
-                            $order_payments[0]->transaction_id = $transaction_id;
-                            $order_payments[0]->save();
+                            $order_payments = OrderPayment::getByOrderId($saved_payment->order_id);
+                            if (isset($order_payments[0])) {
+                                $order_payments[0]->transaction_id = $transaction_id;
+                                $order_payments[0]->save();
+                            }
                         }
                     }
                 } else {
