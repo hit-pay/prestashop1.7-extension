@@ -46,6 +46,9 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
             return false;
         }
 
+        ini_set('max_execution_time', 300);
+        ini_set('max_input_time', -1);
+
         $cart_id = Tools::getValue('cart_id');
         $secure_key = Tools::getValue('secure_key');
 
@@ -79,14 +82,13 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                  * @var HitPayPayment $hitpay_payment
                  */
                 $saved_payment = HitPayPayment::getById($payment_request_id);
-                if (Validate::isLoadedObject($saved_payment)) {
+                if (Validate::isLoadedObject($saved_payment) && !$saved_payment->is_paid) {
                     $saved_payment->status = Tools::getValue('status');
 
                     if ($saved_payment->status == 'completed'
                         && $saved_payment->amount == Tools::getValue('amount')
                         && $saved_payment->cart_id == Tools::getValue('reference_number')
-                        && $saved_payment->currency_id == Currency::getIdByIsoCode(Tools::getValue('currency'))
-                        && !$saved_payment->is_paid) {
+                        && $saved_payment->currency_id == Currency::getIdByIsoCode(Tools::getValue('currency'))) {
                         $payment_status = Configuration::get('PS_OS_PAYMENT');
                     } elseif ($saved_payment->status == 'failed') {
                         $payment_status = Configuration::get('PS_OS_ERROR');
@@ -95,7 +97,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                     } else {
                         throw new \Exception(
                             sprintf(
-                                'HitPay: payment id: %s, amount is %s, status is %s, is paid: %s',
+                                'HitPay: payment request id: %s, amount is %s, status is %s, is paid: %s',
                                 $saved_payment->payment_id,
                                 $saved_payment->amount,
                                 $saved_payment->status,
@@ -112,21 +114,20 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                             $cart->getOrderTotal(),
                             $module_name,
                             $message,
-                            array(
-                                'transaction_id' => $transaction_id
-                            ),
+                            array(),
                             $currency_id,
                             false,
                             $secure_key
                         );
-
                         $order_id = Order::getIdByCartId((int) $cart->id);
                         $saved_payment->order_id = $order_id;
-                        $saved_payment->is_paid = true;
                         $saved_payment->save();
                     } else {
                         $order_history = new OrderHistory();
-                        $order_history->changeIdOrderState($payment_status, $order_id);
+                        $order_history->id_employee = 0;
+                        $order_history->id_order = $order_id;
+                        $order_history->id_order_state = $payment_status;
+                        $saved_payment->save();
                     }
 
                     if ($order_id) {
@@ -136,7 +137,6 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                         );
 
                         $result = $hitpay_client->getPaymentStatus($payment_request_id);
-
                         if ($payments = $result->getPayments()) {
                             $payment = array_shift($payments);
                             if ($payment->status == 'succeeded') {
@@ -147,17 +147,12 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                             if (isset($order_payments[0])) {
                                 $order_payments[0]->transaction_id = $transaction_id;
                                 $order_payments[0]->save();
+
+                                $saved_payment->is_paid = true;
+                                $saved_payment->save();
                             }
                         }
                     }
-
-                } else {
-                    throw new \Exception(
-                        sprintf(
-                            'HitPay has not the payment request id: %s',
-                            $payment_request_id
-                        )
-                    );
                 }
             } else {
                 throw new \Exception(sprintf('HitPay: hmac is not the same like generated'));
