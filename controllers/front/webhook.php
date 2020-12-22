@@ -42,8 +42,11 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
         if ((Tools::isSubmit('cart_id') == false)
             || (Tools::isSubmit('secure_key') == false)
             || (Tools::isSubmit('hmac') == false)) {
-            return false;
+            exit;
         }
+
+        ini_set('max_execution_time', 300);
+        ini_set('max_input_time', -1);
 
         $cart_id = Tools::getValue('cart_id');
         $secure_key = Tools::getValue('secure_key');
@@ -73,14 +76,14 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                 /**
                  * @var HitPayPayment $hitpay_payment
                  */
-                if ($saved_payment = HitPayPayment::getById($payment_request_id)) {
+                $saved_payment = HitPayPayment::getById($payment_request_id);
+                if (Validate::isLoadedObject($saved_payment) && !$saved_payment->is_paid) {
                     $saved_payment->status = Tools::getValue('status');
 
                     if ($saved_payment->status == 'completed'
                         && $saved_payment->amount == Tools::getValue('amount')
                         && $saved_payment->cart_id == Tools::getValue('reference_number')
-                        && $saved_payment->currency_id == Currency::getIdByIsoCode(Tools::getValue('currency'))
-                        && !$saved_payment->is_paid) {
+                        && $saved_payment->currency_id == Currency::getIdByIsoCode(Tools::getValue('currency'))) {
                         $payment_status = Configuration::get('PS_OS_PAYMENT');
                     } elseif ($saved_payment->status == 'failed') {
                         $payment_status = Configuration::get('PS_OS_ERROR');
@@ -98,41 +101,50 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                         );
                     }
 
-                    $this->module->validateOrder(
-                        $cart_id,
-                        $payment_status,
-                        $cart->getOrderTotal(),
-                        $module_name,
-                        $message,
-                        array(
-                            'transaction_id' => $transaction_id
-                        ),
-                        $currency_id,
-                        false,
-                        $secure_key
-                    );
+                    $order_id = Order::getOrderByCartId((int) $cart->id);
+                    if (!$order_id) {
+                        $this->module->validateOrder(
+                            $cart_id,
+                            $payment_status,
+                            $cart->getOrderTotal(),
+                            $module_name,
+                            $message,
+                            array(),
+                            $currency_id,
+                            false,
+                            $secure_key
+                        );
+                        $order_id = Order::getOrderByCartId((int) $cart->id);
+                        $saved_payment->order_id = $order_id;
+                        $saved_payment->save();
+                    } else {
+                        $new_history = new OrderHistory();
+                        $new_history->id_order = (int) $order_id;
+                        $new_history->changeIdOrderState((int) $payment_status, $order_id, true);
+                        $new_history->add();
+                    }
 
-                    $saved_payment->order_id = Order::getOrderByCartId((int) $cart->id);
-                    $saved_payment->is_paid = true;
-                    $saved_payment->save();
+                    if ($order_id) {
+                        $hitpay_client = new Client(
+                            Configuration::get('HITPAY_ACCOUNT_API_KEY'),
+                            Configuration::get('HITPAY_LIVE_MODE')
+                        );
 
-                    $hitpay_client = new Client(
-                        Configuration::get('HITPAY_ACCOUNT_API_KEY'),
-                        Configuration::get('HITPAY_LIVE_MODE')
-                    );
+                        $result = $hitpay_client->getPaymentStatus($payment_request_id);
+                        if ($payments = $result->getPayments()) {
+                            $payment = array_shift($payments);
+                            if ($payment->status == 'succeeded') {
+                                $transaction_id = $payment->id;
+                            }
 
-                    $result = $hitpay_client->getPaymentStatus($payment_request_id);
+                            $order_payments = OrderPayment::getByOrderId($saved_payment->order_id);
+                            if (isset($order_payments[0])) {
+                                $order_payments[0]->transaction_id = $transaction_id;
+                                $order_payments[0]->save();
 
-                    if ($payments = $result->getPayments()) {
-                        $payment = array_shift($payments);
-                        if ($payment->status == 'succeeded') {
-                            $transaction_id = $payment->id;
-                        }
-
-                        $order_payments = OrderPayment::getByOrderId($saved_payment->order_id);
-                        if (isset($order_payments[0])) {
-                            $order_payments[0]->transaction_id = $transaction_id;
-                            $order_payments[0]->save();
+                                $saved_payment->is_paid = true;
+                                $saved_payment->save();
+                            }
                         }
                     }
                 }
