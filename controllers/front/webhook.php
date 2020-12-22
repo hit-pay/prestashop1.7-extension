@@ -43,7 +43,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
         if ((Tools::isSubmit('cart_id') == false)
             || (Tools::isSubmit('secure_key') == false)
             || (Tools::isSubmit('hmac') == false)) {
-            return false;
+            exit;
         }
 
         ini_set('max_execution_time', 300);
