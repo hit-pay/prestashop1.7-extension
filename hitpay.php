@@ -45,7 +45,7 @@ class Hitpay extends PaymentModule
     {
         $this->name = 'hitpay';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.0';
+        $this->version = '1.1.0';
         $this->author = 'hitpay';
         $this->need_instance = 0;
 
@@ -63,7 +63,7 @@ class Hitpay extends PaymentModule
 
         $this->limited_currencies = array('EUR', 'SGD');
 
-        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => '1.6.1.9');
+        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => '1.6.1.24');
     }
 
     /**
@@ -211,7 +211,7 @@ class Hitpay extends PaymentModule
                     array(
                         'type' => 'text',
                         'name' => 'HITPAY_ACCOUNT_API_KEY',
-                        'label' => $this->l('Password'),
+                        'label' => $this->l('Api Key'),
                     ),
                     array(
                         'type' => 'text',
