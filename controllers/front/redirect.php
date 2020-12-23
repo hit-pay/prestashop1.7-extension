@@ -77,7 +77,8 @@ class HitpayRedirectModuleFrontController extends ModuleFrontController
                 ->setCurrency($currency->iso_code)
                 ->setReferenceNumber($cart->id)
                 ->setWebhook($webhook)
-                ->setRedirectUrl($redirect_url);
+                ->setRedirectUrl($redirect_url)
+                ->setChannel('api_prestashop');
 
             /**
              * @var Customer $customer

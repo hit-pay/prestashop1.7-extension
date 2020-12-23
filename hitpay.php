@@ -45,7 +45,7 @@ class Hitpay extends PaymentModule
     {
         $this->name = 'hitpay';
         $this->tab = 'payments_gateways';
-        $this->version = '1.1.0';
+        $this->version = '1.1.2';
         $this->author = 'hitpay';
         $this->need_instance = 0;
 
@@ -58,10 +58,6 @@ class Hitpay extends PaymentModule
 
         $this->displayName = $this->l('HitPay');
         $this->description = $this->l('HitPay allows merchants to accept secure PayNow QR, Credit Card, WeChatPay and AliPay payments.');
-
-        /*$this->limited_countries = array('FR');*/
-
-        $this->limited_currencies = array('EUR', 'SGD');
 
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => '1.6.1.24');
     }
@@ -77,14 +73,6 @@ class Hitpay extends PaymentModule
             $this->_errors[] = $this->l('You have to enable the cURL extension on your server to install this module');
             return false;
         }
-
-        /*$iso_code = Country::getIsoById(Configuration::get('PS_COUNTRY_DEFAULT'));
-
-        if (in_array($iso_code, $this->limited_countries) == false)
-        {
-            $this->_errors[] = $this->l('This module is not available in your country');
-            return false;
-        }*/
 
         Configuration::updateValue('HITPAY_LIVE_MODE', false);
 
@@ -309,10 +297,6 @@ class Hitpay extends PaymentModule
     public function hookPayment($params)
     {
         $currency_id = $params['cart']->id_currency;
-        $currency = new Currency((int)$currency_id);
-
-        /*if (in_array($currency->iso_code, $this->limited_currencies) == false)
-            return false;*/
 
         $this->smarty->assign('module_dir', $this->_path);
 

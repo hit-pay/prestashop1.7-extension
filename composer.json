@@ -8,7 +8,7 @@
     }
   ],
   "require": {
-    "softbuild/hitpay-sdk": "1.7.*"
+    "softbuild/hitpay-sdk": "2.0.*"
   },
   "repositories": [
     {
