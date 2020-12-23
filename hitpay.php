@@ -45,7 +45,7 @@ class Hitpay extends PaymentModule
     {
         $this->name = 'hitpay';
         $this->tab = 'payments_gateways';
-        $this->version = '1.1.1';
+        $this->version = '1.1.2';
         $this->author = 'HitPay';
         $this->need_instance = 0;
 
