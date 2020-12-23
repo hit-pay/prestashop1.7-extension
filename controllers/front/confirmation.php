@@ -42,7 +42,7 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
         if ((Tools::isSubmit('cart_id') == false)
             || (Tools::isSubmit('secure_key') == false)
             || (Tools::isSubmit('reference') == false)) {
-            return false;
+            exit;
         }
 
         //todo it will need to remove
@@ -55,8 +55,13 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
         $customer = new Customer((int) $cart->id_customer);
 
         if ($secure_key != $customer->secure_key) {
-            $this->errors[] = $this->module->l(
-                'An error occured. Please contact the merchant to have more informations'
+            $this->context->smarty->assign(
+                'errors',
+                array(
+                    $this->module->l(
+                        'An error occured. Please contact the merchant to have more informations'
+                    )
+                )
             );
 
             return $this->setTemplate('module:hitpay/views/templates/front/error.tpl');
