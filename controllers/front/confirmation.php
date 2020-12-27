@@ -46,6 +46,11 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
 
         $cart_id = Tools::getValue('cart_id');
         $secure_key = Tools::getValue('secure_key');
+        $status = Tools::getValue('status');
+
+        if ($status == 'canceled') {
+            Tools::redirect('index.php?controller=order');
+        }
 
         $cart = new Cart((int) $cart_id);
         $customer = new Customer((int) $cart->id_customer);
