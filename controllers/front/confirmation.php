@@ -81,7 +81,7 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
             if (Validate::isLoadedObject($saved_payment)
                 && $saved_payment->status == 'completed'
                 && $saved_payment->amount == $cart->getOrderTotal()
-                && $saved_payment->is_paid
+                /*&& $saved_payment->is_paid*/
                 && $saved_payment->order_id) {
 
                 Tools::redirect(

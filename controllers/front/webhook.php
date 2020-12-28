@@ -123,10 +123,13 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                         $saved_payment->order_id = $order_id;
                         $saved_payment->save();
                     } else {
-                        $new_history = new OrderHistory();
-                        $new_history->id_order = (int) $order_id;
-                        $new_history->changeIdOrderState((int) $payment_status, $order_id, true);
-                        $new_history->add();
+                        $order = new Order($order_id);
+                        if ($order->current_state != Configuration::get('PS_OS_PAYMENT')){
+                            $new_history = new OrderHistory();
+                            $new_history->id_order = (int) $order_id;
+                            $new_history->changeIdOrderState((int) $payment_status, $order_id, true);
+                            $new_history->add();
+                        }
                     }
 
                     if ($order_id) {
