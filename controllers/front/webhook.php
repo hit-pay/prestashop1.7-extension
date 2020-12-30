@@ -34,8 +34,9 @@ use HitPay\Client;
 class HitpayWebhookModuleFrontController extends ModuleFrontController
 {
     /**
-     * @return bool
-     * @throws Exception
+     * @return bool|void
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function postProcess()
     {
@@ -55,9 +56,13 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
         $customer = new Customer((int) $cart->id_customer);
 
         if ($secure_key != $customer->secure_key) {
-            $this->errors[] = $this->module->l('An error occured. Please contact the merchant to have more informations');
-
-            return $this->setTemplate('error.tpl');
+            $this->context->smarty->assign(
+                'errors',
+                array(
+                    $this->module->l('An error occured. Please contact the merchant to have more informations')
+                )
+            );
+            return $this->setTemplate('module:hitpay/views/templates/front/error.tpl');
         }
 
         $payment_status = Configuration::get('HITPAY_WAITING_PAYMENT_STATUS'); // Default value for a payment that succeed.
@@ -92,7 +97,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                     } else {
                         throw new \Exception(
                             sprintf(
-                                'HitPay: payment id: %s, amount is %s, status is %s, is paid: %s',
+                                'HitPay: payment request id: %s, amount is %s, status is %s, is paid: %s',
                                 $saved_payment->payment_id,
                                 $saved_payment->amount,
                                 $saved_payment->status,
@@ -101,7 +106,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                         );
                     }
 
-                    $order_id = Order::getOrderByCartId((int) $cart->id);
+                    $order_id = Order::getIdByCartId((int) $cart->id);
                     if (!$order_id) {
                         $this->module->validateOrder(
                             $cart_id,
@@ -114,7 +119,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                             false,
                             $secure_key
                         );
-                        $order_id = Order::getOrderByCartId((int) $cart->id);
+                        $order_id = Order::getIdByCartId((int) $cart->id);
                         $saved_payment->order_id = $order_id;
                         $saved_payment->save();
                     } else {

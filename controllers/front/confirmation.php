@@ -34,15 +34,19 @@ use HitPay\Client;
 class HitpayConfirmationModuleFrontController extends ModuleFrontController
 {
     /**
-     * @return bool
+     * @return bool|void
+     * @throws PrestaShopException
      */
     public function postProcess()
     {
         if ((Tools::isSubmit('cart_id') == false)
             || (Tools::isSubmit('secure_key') == false)
             || (Tools::isSubmit('reference') == false)) {
-            return false;
+            exit;
         }
+
+        //todo it will need to remove
+        sleep(3);
 
         $cart_id = Tools::getValue('cart_id');
         $secure_key = Tools::getValue('secure_key');
@@ -56,11 +60,16 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
         $customer = new Customer((int) $cart->id_customer);
 
         if ($secure_key != $customer->secure_key) {
-            $this->errors[] = $this->module->l(
-                'An error occured. Please contact the merchant to have more informations'
+            $this->context->smarty->assign(
+                'errors',
+                array(
+                    $this->module->l(
+                        'An error occured. Please contact the merchant to have more informations'
+                    )
+                )
             );
 
-            return $this->setTemplate('error.tpl');
+            return $this->setTemplate('module:hitpay/views/templates/front/error.tpl');
         }
 
         try {
@@ -69,7 +78,8 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
              * @var HitPayPayment $hitpay_payment
              */
             $saved_payment = HitPayPayment::getById($payment_id);
-            if ($saved_payment->status == 'completed'
+            if (Validate::isLoadedObject($saved_payment)
+                && $saved_payment->status == 'completed'
                 && $saved_payment->amount == $cart->getOrderTotal()
                 /*&& $saved_payment->is_paid*/
                 && $saved_payment->order_id) {
@@ -103,11 +113,14 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
                 'HitPay'
             );
 
-            $this->errors[] = $this->module->l('Something went wrong, please contact the merchant');
+            $this->context->smarty->assign(
+                'errors',
+                array(
+                    $this->module->l('Something went wrong, please contact the merchant')
+                )
+            );
 
-            return $this->setTemplate('error.tpl');
+            return $this->setTemplate('module:hitpay/views/templates/front/error.tpl');
         }
-
-        exit;
     }
 }

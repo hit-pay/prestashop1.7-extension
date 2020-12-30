@@ -78,7 +78,7 @@ class HitPayPayment extends ObjectModel
             'date_upd' => array('type' => self::TYPE_DATE, 'validate' => 'isDate'),
             'id_shop_default' => array('type' => self::TYPE_INT, 'validate' => 'isInt'),
 
-            //lang fields
+            //shop fields
             'payment_id' => array(
                 'type' => self::TYPE_STRING,
                 'shop' => true,

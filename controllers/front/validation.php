@@ -29,7 +29,7 @@ require_once _PS_MODULE_DIR_ . 'hitpay/classes/HitPayPayment.php';
 use HitPay\Client;
 use HitPay\Request\CreatePayment;
 
-class HitpayRedirectModuleFrontController extends ModuleFrontController
+class HitpayValidationModuleFrontController extends ModuleFrontController
 {
     /**
      * Do whatever you have to before redirecting the customer on the website of your payment processor.
@@ -131,11 +131,8 @@ class HitpayRedirectModuleFrontController extends ModuleFrontController
 			<a href="' . $this->context->link->getPageLink('order', null, null, 'step=3') . '">' . $this->module->l('Payment') . '</a>
 			<span class="navigation-pipe">&gt;</span>' . $this->module->l('Error'));
 
-        /*
-         * Set error message and description for the template.
-         */
-        array_push($this->errors, $this->module->l($message), $description);
+        $this->context->smarty->assign('errors', array($this->module->l($message)));
 
-        return $this->setTemplate('error.tpl');
+        return $this->setTemplate('module:hitpay/views/templates/front/error.tpl');
     }
 }
