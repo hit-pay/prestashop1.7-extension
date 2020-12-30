@@ -1,1 +1,28 @@
-# HitPay
+# HitPay ![Logo](logo.png)
+
+##Installing
+
+1. Need to download the repository
+2. Execute:
+```shell
+cd path/to/project/modules/hitpay;
+composer install;
+```
+3. Go to admin page:
+![](views/img/readme/admin1.png)
+4. Click on install button
+
+##Configuration
+1. Go to prestashop configuration page:
+![](views/img/readme/admin2.png)
+2. Go to dashboard of hitpay:
+![](views/img/readme/admin3.png)
+![](views/img/readme/admin4.png)
+3. Copy api key and salt from hitpay dashboard to prestashop module in the same named fields
+
+##Using
+
+1. Payment
+![](views/img/readme/admin5.png)
+2. Checking orders
+![](views/img/readme/admin6.png)
