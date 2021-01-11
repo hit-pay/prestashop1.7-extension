@@ -8,6 +8,11 @@
 cd path/to/project/modules/hitpay;
 composer install;
 ```
+if you update the module, need to execute:
+```shell
+cd path/to/project/modules/hitpay;
+composer update;
+```
 3. Go to admin page:
 ![](views/img/readme/admin1.png)
 4. Click on install button
