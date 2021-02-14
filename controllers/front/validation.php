@@ -122,14 +122,17 @@ class HitpayValidationModuleFrontController extends ModuleFrontController
      * @param bool $description
      * @return mixed
      */
-    protected function displayError($message, $description = false)
+    protected function displayError($message)
     {
         /*
          * Create the breadcrumb for your ModuleFrontController.
          */
-        $this->context->smarty->assign('path', '
-			<a href="' . $this->context->link->getPageLink('order', null, null, 'step=3') . '">' . $this->module->l('Payment') . '</a>
-			<span class="navigation-pipe">&gt;</span>' . $this->module->l('Error'));
+        $this->context->smarty->assign(
+            'path',
+            '<a href="' . $this->context->link->getPageLink('order', null, null, 'step=3') . '">' .
+            $this->module->l('Payment') . '</a> <span class="navigation-pipe">&gt;</span>' .
+            $this->module->l('Error')
+        );
 
         $this->context->smarty->assign('errors', array($this->module->l($message)));
 

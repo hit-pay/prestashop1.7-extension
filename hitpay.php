@@ -1,6 +1,6 @@
 <?php
 /**
-* 2007-2020 PrestaShop
+* 2007-2021 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author    PrestaShop SA <contact@prestashop.com>
-*  @copyright 2007-2020 PrestaShop SA
+*  @copyright 2007-2021 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -38,6 +38,9 @@ require_once _PS_MODULE_DIR_ . 'hitpay/classes/HitPayPayment.php';
  */
 class Hitpay extends PaymentModule
 {
+    protected $html = '';
+    protected $postErrors = array();
+    
     /**
      * Hitpay constructor.
      */
@@ -45,44 +48,26 @@ class Hitpay extends PaymentModule
     {
         $this->name = 'hitpay';
         $this->tab = 'payments_gateways';
-        $this->version = '1.1.4';
+        $this->version = '1.1.5';
         $this->author = 'HitPay';
         $this->need_instance = 0;
 
-        /**
-         * Set $this->bootstrap to true if your module is compliant with bootstrap (PrestaShop 1.6)
-         */
         $this->bootstrap = true;
 
         parent::__construct();
 
         $this->displayName = $this->l('HitPay');
-        $this->description = $this->l('HitPay allows merchants to accept secure PayNow QR, Credit Card, WeChatPay and AliPay payments.');
-
+        $this->description = $this->l('Accept secure PayNow QR, Credit Card, WeChatPay and AliPay payments.');
         $this->limited_currencies = array('EUR', 'SGD');
-
         $this->ps_versions_compliancy = array('min' => '1.7.1.0', 'max' => _PS_VERSION_);
     }
 
-    /**
-     * Don't forget to create update methods if needed:
-     * http://doc.prestashop.com/display/PS16/Enabling+the+Auto-Update
-     */
     public function install()
     {
-        if (extension_loaded('curl') == false)
-        {
+        if (extension_loaded('curl') == false) {
             $this->_errors[] = $this->l('You have to enable the cURL extension on your server to install this module');
             return false;
         }
-
-        /*$iso_code = Country::getIsoById(Configuration::get('PS_COUNTRY_DEFAULT'));
-
-        if (in_array($iso_code, $this->limited_countries) == false)
-        {
-            $this->_errors[] = $this->l('This module is not available in your country');
-            return false;
-        }*/
 
         Configuration::updateValue('HITPAY_LIVE_MODE', false);
 
@@ -125,10 +110,18 @@ class Hitpay extends PaymentModule
          * If values have been submitted in the form, process.
          */
         if (((bool)Tools::isSubmit('submitHitpayModule')) == true) {
-            $this->postProcess();
+            $this->postValidation();
+            if (!count($this->postErrors)) {
+                $this->postProcess();
+            } else {
+                foreach ($this->postErrors as $err) {
+                    $this->html .= $this->displayError($err);
+                }
+            }
         }
 
-        return $this->renderForm();
+        $this->html .=  $this->renderForm();
+        return $this->html;
     }
 
     /**
@@ -194,11 +187,13 @@ class Hitpay extends PaymentModule
                         'type' => 'text',
                         'name' => 'HITPAY_ACCOUNT_API_KEY',
                         'label' => $this->l('Api Key'),
+                        'required' => true,
                     ),
                     array(
                         'type' => 'text',
                         'name' => 'HITPAY_ACCOUNT_SALT',
                         'label' => $this->l('Salt'),
+                        'required' => true,
                     ),
                     array(
                         'type' => 'checkbox',
@@ -239,15 +234,39 @@ class Hitpay extends PaymentModule
      */
     protected function getConfigFormValues()
     {
+        $LIVE_MODE = Configuration::get('HITPAY_LIVE_MODE');
+        $API_KEY = Configuration::get('HITPAY_ACCOUNT_API_KEY');
+        $SALT = Configuration::get('HITPAY_ACCOUNT_SALT');
+        $paynow_online = Configuration::get('HITPAY_PAYMENTS_paynow_online');
+        $card = Configuration::get('HITPAY_PAYMENTS_card');
+        $wechat = Configuration::get('HITPAY_PAYMENTS_wechat');
+            
         return array(
-            'HITPAY_LIVE_MODE' => Configuration::get('HITPAY_LIVE_MODE'),
-            /*'HITPAY_ACCOUNT_EMAIL' => Configuration::get('HITPAY_ACCOUNT_EMAIL'),*/
-            'HITPAY_ACCOUNT_API_KEY' => Configuration::get('HITPAY_ACCOUNT_API_KEY'),
-            'HITPAY_ACCOUNT_SALT' => base64_decode(Configuration::get('HITPAY_ACCOUNT_SALT')),
-            'HITPAY_PAYMENTS_paynow_online' => Configuration::get('HITPAY_PAYMENTS_paynow_online'),
-            'HITPAY_PAYMENTS_card' => Configuration::get('HITPAY_PAYMENTS_card'),
-            'HITPAY_PAYMENTS_wechat' => Configuration::get('HITPAY_PAYMENTS_wechat'),
+            'HITPAY_LIVE_MODE' => Tools::getValue('HITPAY_LIVE_MODE', $LIVE_MODE),
+            'HITPAY_ACCOUNT_API_KEY' => Tools::getValue('HITPAY_ACCOUNT_API_KEY', $API_KEY),
+            'HITPAY_ACCOUNT_SALT' => Tools::getValue('HITPAY_ACCOUNT_SALT', $SALT),
+            'HITPAY_PAYMENTS_paynow_online' => Tools::getValue('HITPAY_PAYMENTS_paynow_online', $paynow_online),
+            'HITPAY_PAYMENTS_card' => Tools::getValue('HITPAY_PAYMENTS_card', $card),
+            'HITPAY_PAYMENTS_wechat' => Tools::getValue('HITPAY_PAYMENTS_wechat', $wechat),
         );
+    }
+    
+    protected function postValidation()
+    {
+        $HITPAY_ACCOUNT_API_KEY = Tools::getValue('HITPAY_ACCOUNT_API_KEY');
+        $HITPAY_ACCOUNT_API_KEY = trim($HITPAY_ACCOUNT_API_KEY);
+        $HITPAY_ACCOUNT_API_KEY = strip_tags($HITPAY_ACCOUNT_API_KEY);
+        
+        $HITPAY_ACCOUNT_SALT = Tools::getValue('HITPAY_ACCOUNT_SALT');
+        $HITPAY_ACCOUNT_SALT = trim($HITPAY_ACCOUNT_SALT);
+        $HITPAY_ACCOUNT_SALT = strip_tags($HITPAY_ACCOUNT_SALT);
+        
+        if (empty($HITPAY_ACCOUNT_API_KEY)) {
+            $this->postErrors[] = $this->l('Please provide API Key');
+        }
+        if (empty($HITPAY_ACCOUNT_SALT)) {
+            $this->postErrors[] = $this->l('Please provide API Salt');
+        }
     }
 
     /**
@@ -261,7 +280,8 @@ class Hitpay extends PaymentModule
             Configuration::updateValue($key, Tools::getValue($key));
         }
 
-        Configuration::updateValue('HITPAY_ACCOUNT_SALT', base64_encode(Tools::getValue('HITPAY_ACCOUNT_SALT')));
+        Configuration::updateValue('HITPAY_ACCOUNT_SALT', Tools::getValue('HITPAY_ACCOUNT_SALT'));
+        $this->html .= $this->displayConfirmation($this->l('Settings updated'));
     }
 
     /**
@@ -306,7 +326,7 @@ class Hitpay extends PaymentModule
         if (Configuration::get('HITPAY_PAYMENTS_card')) {
             $title = 'Credit cards, ';
             if (!empty($button_text)) {
-                $title = strtolower($title);
+                $title =  Tools::strtolower($title);
             }
             $button_text .= $title;
         }

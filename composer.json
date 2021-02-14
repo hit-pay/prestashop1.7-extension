@@ -7,6 +7,9 @@
       "email": "dev@soft-build.by"
     }
   ],
+  "config": {
+        "prepend-autoloader": false
+  },
   "require": {
     "softbuild/hitpay-sdk": "2.0.*"
   },

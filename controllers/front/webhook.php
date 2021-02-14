@@ -1,6 +1,6 @@
 <?php
 /**
-* 2007-2020 PrestaShop
+* 2007-2021 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author    PrestaShop SA <contact@prestashop.com>
-*  @copyright 2007-2020 PrestaShop SA
+*  @copyright 2007-2021 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -65,7 +65,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
             return $this->setTemplate('module:hitpay/views/templates/front/error.tpl');
         }
 
-        $payment_status = Configuration::get('HITPAY_WAITING_PAYMENT_STATUS'); // Default value for a payment that succeed.
+        $payment_status = Configuration::get('HITPAY_WAITING_PAYMENT_STATUS');
         $message = null; // You can add a comment directly into the order so the merchant will see it in the BO.
         $transaction_id = null;
         $module_name = $this->module->displayName;
@@ -75,7 +75,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
             $data = $_POST;
             unset($data['hmac']);
 
-            $salt = base64_decode(Configuration::get('HITPAY_ACCOUNT_SALT'));
+            $salt = Configuration::get('HITPAY_ACCOUNT_SALT');
             if (Client::generateSignatureArray($salt, $data) == Tools::getValue('hmac')) {
                 $payment_request_id = Tools::getValue('payment_request_id');
                 /**
@@ -124,7 +124,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                         $saved_payment->save();
                     } else {
                         $order = new Order($order_id);
-                        if ($order->current_state != Configuration::get('PS_OS_PAYMENT')){
+                        if ($order->current_state != Configuration::get('PS_OS_PAYMENT')) {
                             $new_history = new OrderHistory();
                             $new_history->id_order = (int) $order_id;
                             $new_history->changeIdOrderState((int) $payment_status, $order_id, true);
@@ -145,7 +145,8 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                                 $transaction_id = $payment->id;
                             }
 
-                            $order_payments = OrderPayment::getByOrderId($saved_payment->order_id);
+                            $order = new Order((int)$order_id);
+                            $order_payments = OrderPayment::getByOrderReference($order->reference);
                             if (isset($order_payments[0])) {
                                 $order_payments[0]->transaction_id = $transaction_id;
                                 $order_payments[0]->save();

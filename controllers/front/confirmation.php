@@ -1,6 +1,6 @@
 <?php
 /**
-* 2007-2020 PrestaShop
+* 2007-2021 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author    PrestaShop SA <contact@prestashop.com>
-*  @copyright 2007-2020 PrestaShop SA
+*  @copyright 2007-2021 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -44,9 +44,6 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
             || (Tools::isSubmit('reference') == false)) {
             exit;
         }
-
-        //todo it will need to remove
-        sleep(3);
 
         $cart_id = Tools::getValue('cart_id');
         $secure_key = Tools::getValue('secure_key');
@@ -81,9 +78,8 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
             if (Validate::isLoadedObject($saved_payment)
                 && $saved_payment->status == 'completed'
                 && $saved_payment->amount == $cart->getOrderTotal()
-                /*&& $saved_payment->is_paid*/
-                && $saved_payment->order_id) {
-
+                && $saved_payment->order_id
+            ) {
                 Tools::redirect(
                     'index.php?controller=order-confirmation&id_cart='
                     . $saved_payment->cart_id
@@ -95,15 +91,12 @@ class HitpayConfirmationModuleFrontController extends ModuleFrontController
                     . $secure_key
                 );
             } else {
-                throw new \Exception(
-                    sprintf(
-                        'HitPay: payment id: %s, amount is %s, status is %s, is paid: %s',
-                        $saved_payment->payment_id,
-                        $saved_payment->amount,
-                        $saved_payment->status,
-                        $saved_payment->is_paid ? 'yes' : 'no'
-                    )
-                );
+                $ajax_url = $this->context->link->getModuleLink('hitpay', 'status');
+                $this->context->smarty->assign('hitpay_payment_id', $payment_id);
+                $this->context->smarty->assign('hitpay_cart_id', $cart_id);
+                $this->context->smarty->assign('status_ajax_url', $ajax_url);
+                $this->context->smarty->assign('hitpay_img_path', _MODULE_DIR_.'hitpay/views/img/');
+                return $this->setTemplate('module:hitpay/views/templates/front/confirmation.tpl');
             }
         } catch (\Exception $e) {
             PrestaShopLogger::addLog(
