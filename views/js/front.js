@@ -38,30 +38,32 @@ $(document).ready(function(){
                 return;
             }
 
-            $.getJSON(status_ajax_url, {'payment_id' : hitpay_payment_id, 'cart_id' : hitpay_cart_id}, function (data) {
-                if (data.status == 'wait') {
-                    setTimeout(status_loop, 2000);
-                } else if (data.status == 'error') {
-                    $('.payment_pending').hide();
-                    $('.payment_error').show();
-                    is_status_received = true;
-                } else if (data.status == 'pending') {
-                    $('.payment_pending').hide();
-                    $('.payment_status_pending').show();
-                    is_status_received = true;
-                    setTimeout(function(){window.location.href = data.redirect;}, 5000);
-                } else if (data.status == 'failed') {
-                    $('.payment_pending').hide();
-                    $('.payment_status_failed').show();
-                    is_status_received = true;
-                    setTimeout(function(){window.location.href = data.redirect;}, 5000);
-                } else if (data.status == 'completed') {
-                    $('.payment_pending').hide();
-                    $('.payment_status_complete').show();
-                    is_status_received = true;
-                    setTimeout(function(){window.location.href = data.redirect;}, 5000);
-                }
-            });
+            if (typeof(status_ajax_url) !== "undefined") {
+                $.getJSON(status_ajax_url, {'payment_id' : hitpay_payment_id, 'cart_id' : hitpay_cart_id}, function (data) {
+                    if (data.status == 'wait') {
+                        setTimeout(status_loop, 2000);
+                    } else if (data.status == 'error') {
+                        $('.payment_pending').hide();
+                        $('.payment_error').show();
+                        is_status_received = true;
+                    } else if (data.status == 'pending') {
+                        $('.payment_pending').hide();
+                        $('.payment_status_pending').show();
+                        is_status_received = true;
+                        setTimeout(function(){window.location.href = data.redirect;}, 5000);
+                    } else if (data.status == 'failed') {
+                        $('.payment_pending').hide();
+                        $('.payment_status_failed').show();
+                        is_status_received = true;
+                        setTimeout(function(){window.location.href = data.redirect;}, 5000);
+                    } else if (data.status == 'completed') {
+                        $('.payment_pending').hide();
+                        $('.payment_status_complete').show();
+                        is_status_received = true;
+                        setTimeout(function(){window.location.href = data.redirect;}, 5000);
+                    }
+                });
+            }
         }
         status_loop();
     }
