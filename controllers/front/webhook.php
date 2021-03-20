@@ -160,7 +160,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
             } else {
                 throw new \Exception(sprintf('HitPay: hmac is not the same like generated'));
             }
-        } catch (\Exeption $e) {
+        } catch (\Exception $e) {
             PrestaShopLogger::addLog(
                 'HitPay: ' . $e->getMessage(),
                 3,
