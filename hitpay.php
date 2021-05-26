@@ -41,6 +41,8 @@ class Hitpay extends PaymentModule
     protected $html = '';
     protected $postErrors = array();
     
+    public $webhookTableName = 'hitpay_webhook_order'; 
+    
     /**
      * Hitpay constructor.
      */
@@ -48,7 +50,7 @@ class Hitpay extends PaymentModule
     {
         $this->name = 'hitpay';
         $this->tab = 'payments_gateways';
-        $this->version = '1.1.6';
+        $this->version = '1.1.7';
         $this->author = 'HitPay';
         $this->need_instance = 0;
 
@@ -87,7 +89,8 @@ class Hitpay extends PaymentModule
             $this->registerHook('backOfficeHeader') &&
             $this->registerHook('paymentOptions') &&
             $order_status->id &&
-            HitPayPayment::install();
+            HitPayPayment::install() &&
+            $this->upgrade_1_1_7();
     }
 
     public function uninstall()
@@ -357,5 +360,26 @@ class Hitpay extends PaymentModule
             }
         }
         return false;
+    }
+    
+    public function upgrade_1_1_7()
+    {
+        $sql = 'CREATE TABLE IF NOT EXISTS '._DB_PREFIX_.$this->webhookTableName. '(
+            id int not null auto_increment,
+            order_id int(11),
+            primary key(id)
+        )';
+        Db::getInstance()->execute($sql);
+        return true;
+    }
+    
+    public function isWebhookTriggered($order_id)
+    {
+        return (int)Db::getInstance()->getValue('select id FROM ' . _DB_PREFIX_.$this->webhookTableName . ' WHERE order_id='.(int)($order_id));
+    }
+    
+    public function addOrderWebhookTrigger($order_id)
+    {
+        Db::getInstance()->insert($this->webhookTableName, array('order_id' => (int) $order_id));
     }
 }

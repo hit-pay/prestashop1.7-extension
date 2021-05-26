@@ -49,9 +49,17 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
         ini_set('max_execution_time', 300);
         ini_set('max_input_time', -1);
 
-        $cart_id = Tools::getValue('cart_id');
+        $cart_id = (int)Tools::getValue('cart_id');
         $secure_key = Tools::getValue('secure_key');
-
+        
+        if ($cart_id > 0) {
+            if ($this->module->isWebhookTriggered($cart_id)) {
+                exit;
+            } else {
+                $this->module->addOrderWebhookTrigger($cart_id);
+            }
+        }
+        
         $cart = new Cart((int) $cart_id);
         $customer = new Customer((int) $cart->id_customer);
 
@@ -153,6 +161,21 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
 
                                 $saved_payment->is_paid = true;
                                 $saved_payment->save();
+                            }
+                        }
+                        
+                        $order = new Order((int)$order_id);
+                        $orderTotal = $order->total_paid;
+                        $orderTotalPayment = 0;
+                        $order_payments = OrderPayment::getByOrderReference($order->reference);
+                        if ($order_payments) {
+                            foreach ($order_payments as $order_payment) {
+                                $orderTotalPayment += $order_payment->amount;
+                                if ($orderTotalPayment > $orderTotal) {
+                                    Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'order_payment`
+                                        WHERE `id_order_payment` = \'' . pSQL($order_payment->id_order_payment) . '\''
+                                    );
+                                }
                             }
                         }
                     }
