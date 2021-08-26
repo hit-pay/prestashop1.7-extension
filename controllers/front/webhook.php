@@ -94,7 +94,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                     $saved_payment->status = Tools::getValue('status');
 
                     if ($saved_payment->status == 'completed'
-                        && $saved_payment->amount == Tools::getValue('amount')
+                        && number_format($saved_payment->amount, 2) == Tools::getValue('amount')
                         && $saved_payment->cart_id == Tools::getValue('reference_number')
                         && $saved_payment->currency_id == Currency::getIdByIsoCode(Tools::getValue('currency'))) {
                         $payment_status = Configuration::get('PS_OS_PAYMENT');

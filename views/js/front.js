@@ -40,6 +40,7 @@ $(document).ready(function(){
 
             if (typeof(status_ajax_url) !== "undefined") {
                 $.getJSON(status_ajax_url, {'payment_id' : hitpay_payment_id, 'cart_id' : hitpay_cart_id}, function (data) {
+                    $.ajaxSetup({ cache: false });
                     if (data.status == 'wait') {
                         setTimeout(status_loop, 2000);
                     } else if (data.status == 'error') {
