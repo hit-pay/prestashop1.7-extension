@@ -47,13 +47,13 @@
             <p>{l s='We are redirecting you to order confirmation page...' mod='hitpay'}</p>
         </div>
         <div class="payment_status_failed" style="width: 100%; text-align: center; display: none">
-            <img src="{$hitpay_img_path|escape:'htmlall':'UTF-8'}disabled.png" style="width:200px" />
+            <img src="{$hitpay_img_path|escape:'htmlall':'UTF-8'}disabled.gif" style="width:200px" />
             <span>{l s='Your payment has been failed. ' mod='hitpay'}</span>
             <p>&nbsp;</p>
             <p>{l s='We are redirecting you to order confirmation page...' mod='hitpay'}</p>
         </div>
         <div class="payment_status_pending" style="width: 100%; text-align: center; display: none">
-            <img src="{$hitpay_img_path|escape:'htmlall':'UTF-8'}warning.png" style="width:200px" />
+            <img src="{$hitpay_img_path|escape:'htmlall':'UTF-8'}warning.gif" style="width:200px" />
             <span>{l s='Your payment status is in pending.' mod='hitpay'}</span>
             <p>&nbsp;</p>
             <p>{l s='We are redirecting you to order confirmation page...' mod='hitpay'}</p>

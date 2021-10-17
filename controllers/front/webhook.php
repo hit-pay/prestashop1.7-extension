@@ -40,6 +40,13 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
      */
     public function postProcess()
     {
+        PrestaShopLogger::addLog(
+                date("Y-m-d H:i:s").': '.'HitPay: Webhook triggered',
+                1,
+                null,
+                'HitPay'
+            );
+
         if ((Tools::isSubmit('cart_id') == false)
             || (Tools::isSubmit('secure_key') == false)
             || (Tools::isSubmit('hmac') == false)) {
@@ -56,7 +63,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
             if ($this->module->isWebhookTriggered($cart_id)) {
                 exit;
             } else {
-                $this->module->addOrderWebhookTrigger($cart_id);
+                //$this->module->addOrderWebhookTrigger($cart_id);
             }
         }
         
@@ -64,6 +71,12 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
         $customer = new Customer((int) $cart->id_customer);
 
         if ($secure_key != $customer->secure_key) {
+            PrestaShopLogger::addLog(
+                date("Y-m-d H:i:s").': '.'HitPay: Webhook Security Key NOt matched',
+                3,
+                null,
+                'HitPay'
+            );
             $this->context->smarty->assign(
                 'errors',
                 array(
@@ -81,10 +94,14 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
 
         try {
             $data = $_POST;
+            
             unset($data['hmac']);
 
             $salt = Configuration::get('HITPAY_ACCOUNT_SALT');
-            if (Client::generateSignatureArray($salt, $data) == Tools::getValue('hmac')) {
+            
+            $hmac_generated = Client::generateSignatureArray($salt, $data);
+            
+            if (Client::generateSignatureArray($salt, $data) == trim(Tools::getValue('hmac'))) {
                 $payment_request_id = Tools::getValue('payment_request_id');
                 /**
                  * @var HitPayPayment $hitpay_payment
@@ -130,6 +147,8 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                         $order_id = Order::getIdByCartId((int) $cart->id);
                         $saved_payment->order_id = $order_id;
                         $saved_payment->save();
+                        
+                        $this->module->addOrderWebhookTrigger($cart_id);
                     } else {
                         $order = new Order($order_id);
                         if ($order->current_state != Configuration::get('PS_OS_PAYMENT')) {
@@ -137,6 +156,8 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                             $new_history->id_order = (int) $order_id;
                             $new_history->changeIdOrderState((int) $payment_status, $order_id, true);
                             $new_history->add();
+                            
+                            $this->module->addOrderWebhookTrigger($cart_id);
                         }
                     }
 
@@ -185,7 +206,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
             }
         } catch (\Exception $e) {
             PrestaShopLogger::addLog(
-                'HitPay: ' . $e->getMessage(),
+                date("Y-m-d H:i:s").': '.'HitPay: ' . $e->getMessage(),
                 3,
                 null,
                 'HitPay'

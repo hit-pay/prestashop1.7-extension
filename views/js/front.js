@@ -27,10 +27,42 @@
 */
 
 let is_status_received = false;
+let is_payment_option_found = false;
 $(document).ready(function(){
     
+   check_hitpay_payment_option();
    check_hitpay_payment_status();
    
+   function check_hitpay_payment_option() {
+       function option_loop() {
+            if (is_payment_option_found) {
+                return;
+            }
+
+            if (typeof(hitpay_logo_path) !== "undefined") {
+                var hitpayInput = $('input[data-module-name="hitpay"]');
+                if (hitpayInput.length > 0) {
+                    is_payment_option_found = true;
+                    hitpayInput.parent().next().next().addClass('hitpay-payment-option-label');
+                    
+                    if (typeof(hitpay_logos) !== "undefined" && hitpay_logos.length > 0) {
+                        var logoArray = hitpay_logos.split(',');
+                        var logoImages = '';
+                        for(var i = 0; i < logoArray.length; i++) {
+                            logoImages += '<img src="'+hitpay_logo_path+logoArray[i]+'.svg" title="'+logoArray[i]+'" alt="'+logoArray[i]+'" class="hitpay-logo"/>';
+                        }
+                        if (logoImages.length > 0) {
+                            hitpayInput.parent().next().next().children('img').addClass('hitpay-payment-default-logo');
+                            hitpayInput.parent().next().next().children('img').after(logoImages);
+                        }
+                    }
+                } else {
+                    setTimeout(option_loop, 500);
+                }
+            }
+        }
+        option_loop();
+   }
    function check_hitpay_payment_status() {
 
         function status_loop() {
