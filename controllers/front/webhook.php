@@ -72,7 +72,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
 
         if ($secure_key != $customer->secure_key) {
             PrestaShopLogger::addLog(
-                date("Y-m-d H:i:s").': '.'HitPay: Webhook Security Key NOt matched',
+                date("Y-m-d H:i:s").': '.'HitPay: Webhook Security Key Not matched',
                 3,
                 null,
                 'HitPay'
@@ -95,6 +95,13 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
         try {
             $data = $_POST;
             
+            PrestaShopLogger::addLog(
+                date("Y-m-d H:i:s").': '.'HitPay: Webhook Post Data: '.print_r($data, true),
+                1,
+                null,
+                'HitPay'
+            );
+            
             unset($data['hmac']);
 
             $salt = Configuration::get('HITPAY_ACCOUNT_SALT');
@@ -107,11 +114,12 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                  * @var HitPayPayment $hitpay_payment
                  */
                 $saved_payment = HitPayPayment::getById($payment_request_id);
+                
                 if (Validate::isLoadedObject($saved_payment) && !$saved_payment->is_paid) {
                     $saved_payment->status = Tools::getValue('status');
-
+                    
                     if ($saved_payment->status == 'completed'
-                        && number_format($saved_payment->amount, 2) == Tools::getValue('amount')
+                        && number_format($saved_payment->amount, 2, '.', '') == Tools::getValue('amount')
                         && $saved_payment->cart_id == Tools::getValue('reference_number')
                         && $saved_payment->currency_id == Currency::getIdByIsoCode(Tools::getValue('currency'))) {
                         $payment_status = Configuration::get('PS_OS_PAYMENT');

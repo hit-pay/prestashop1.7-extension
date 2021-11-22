@@ -130,7 +130,7 @@ class HitPayPayment extends ObjectModel
                 'shop' => true,
                 'required' => true,
                 'validate' => 'isFloat',
-                'size' => 10
+                'size' => 50
             ),
             'currency_id' => array(
                 'type' => self::TYPE_INT,
