@@ -122,7 +122,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                         && number_format($saved_payment->amount, 2, '.', '') == Tools::getValue('amount')
                         && $saved_payment->cart_id == Tools::getValue('reference_number')
                         && $saved_payment->currency_id == Currency::getIdByIsoCode(Tools::getValue('currency'))) {
-                        $payment_status = Configuration::get('PS_OS_PAYMENT');
+                        $payment_status = $this->module->getPaymentOrderStatus();
                     } elseif ($saved_payment->status == 'failed') {
                         $payment_status = Configuration::get('PS_OS_ERROR');
                     } elseif ($saved_payment->status == 'pending') {
@@ -159,7 +159,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                         $this->module->addOrderWebhookTrigger($cart_id);
                     } else {
                         $order = new Order($order_id);
-                        if ($order->current_state != Configuration::get('PS_OS_PAYMENT')) {
+                        if ($order->current_state != $this->module->getPaymentOrderStatus()) {
                             $new_history = new OrderHistory();
                             $new_history->id_order = (int) $order_id;
                             $new_history->changeIdOrderState((int) $payment_status, $order_id, true);
@@ -208,6 +208,8 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                             }
                         }
                     }
+                } else {
+                    throw new \Exception(sprintf('HitPay: Saved Payment not valid'));
                 }
             } else {
                 throw new \Exception(sprintf('HitPay: hmac is not the same like generated'));

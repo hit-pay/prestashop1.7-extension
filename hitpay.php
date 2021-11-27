@@ -45,7 +45,10 @@ class Hitpay extends PaymentModule
     
     public $webhookTableName = 'hitpay_webhook_order'; 
     public $refundTableName = 'hitpay_refund_order';
-    public $displayLogoTitle = false;
+    
+    protected $form_lang_fields = array(
+        'HITPAY_TITLE',
+    );
     /**
      * Hitpay constructor.
      */
@@ -53,14 +56,14 @@ class Hitpay extends PaymentModule
     {
         $this->name = 'hitpay';
         $this->tab = 'payments_gateways';
-        $this->version = '1.1.9';
+        $this->version = '2.0.0';
         $this->author = 'HitPay';
 
         $this->bootstrap = true;
 
         parent::__construct();
 
-        $this->displayName = $this->l('HitPay');
+        $this->displayName = $this->l('HitPay Payment Gateway');
         $this->description = $this->l('Accept secure PayNow QR, Credit Card, WeChatPay and AliPay payments.');
         $this->limited_currencies = array('EUR', 'SGD');
         $this->ps_versions_compliancy = array('min' => '1.7.1.0', 'max' => _PS_VERSION_);
@@ -94,7 +97,8 @@ class Hitpay extends PaymentModule
             HitPayPayment::install() &&
             $this->upgrade_1_1_7() &&
             $this->upgrade_1_1_8() &&
-            $this->upgrade_1_1_9();
+            $this->upgrade_1_1_9() &&
+            $this->upgrade_2_0_0();
     }
 
     public function uninstall()
@@ -216,6 +220,38 @@ class Hitpay extends PaymentModule
         
         return $options;
     }
+    
+    public function getOrderStatuses()
+    {
+        $list[] = ['id' => 0, 'name' => '---'];
+        $skipStates = [
+            Configuration::get('PS_OS_CANCELED'),
+            Configuration::get('PS_OS_REFUND'),
+            Configuration::get('PS_OS_ERROR'),
+            Configuration::get('PS_OS_OUTOFSTOCK'),
+            Configuration::get('PS_OS_OUTOFSTOCK_PAID'),
+            Configuration::get('PS_OS_OUTOFSTOCK_UNPAID')
+        ];
+        
+        $states = OrderState::getOrderStates($this->context->language->id);
+        foreach ($states as $state) {
+            if (!in_array($state['id_order_state'], $skipStates)) {
+                $list[] = ['id' => $state['id_order_state'], 'name' => $state['name']];
+            }
+        }
+        return $list;
+    }
+    
+    public function getOrderStatusesOptions()
+    {
+        $options = [];
+        $list = $this->getOrderStatuses();
+        foreach ($list as $item) {
+            $options[$item['id']] = $item['name'];
+        }
+        
+        return $options;
+    }
 
     /**
      * Create the structure of your form.
@@ -250,6 +286,13 @@ class Hitpay extends PaymentModule
                     ),
                     array(
                         'type' => 'text',
+                        'label' => $this->l('Title'),
+                        'desc' => $this->l('This will display on the checkout'),
+                        'name' => 'HITPAY_TITLE',
+                        'lang' => true,
+                    ),
+                    array(
+                        'type' => 'text',
                         'name' => 'HITPAY_ACCOUNT_API_KEY',
                         'label' => $this->l('Api Key'),
                         'required' => true,
@@ -273,6 +316,17 @@ class Hitpay extends PaymentModule
                         'size' => 10,
                         'desc' => $this->l('Select the logos which you would like to display on checkout. CTRL + click to select multiple')
                     ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Order Status'),
+                        'name' => 'HITPAY_ORDER_STATUS',
+                        'options' => array(
+                            'query' => $this->getOrderStatuses(),
+                            'id' => 'id',
+                            'name' => 'name'
+                        ),
+                        'desc' => $this->l('Set your desired order status upon successful payment.')
+                    ),
                 ),
                 'submit' => array(
                     'title' => $this->l('Save'),
@@ -295,13 +349,27 @@ class Hitpay extends PaymentModule
         $LIVE_MODE = Configuration::get('HITPAY_LIVE_MODE');
         $API_KEY = Configuration::get('HITPAY_ACCOUNT_API_KEY');
         $SALT = Configuration::get('HITPAY_ACCOUNT_SALT');
+        $ORDER_STATUS = Configuration::get('HITPAY_ORDER_STATUS');
             
-        return array(
+        $params1 = array(
             'HITPAY_LIVE_MODE' => Tools::getValue('HITPAY_LIVE_MODE', $LIVE_MODE),
             'HITPAY_ACCOUNT_API_KEY' => Tools::getValue('HITPAY_ACCOUNT_API_KEY', $API_KEY),
             'HITPAY_ACCOUNT_SALT' => Tools::getValue('HITPAY_ACCOUNT_SALT', $SALT),
             'HITPAY_PAYMENT_LOGOS[]' => explode(',',$HITPAY_PAYMENT_LOGOS),
+            'HITPAY_ORDER_STATUS' => Tools::getValue('HITPAY_ORDER_STATUS', $ORDER_STATUS),
         );
+        
+        $languages = Language::getLanguages(false);
+        foreach ($languages as $language) {
+            $id_lang = $language['id_lang'];
+            foreach ($this->form_lang_fields as $key => $val) {
+                $field_key = $val.'_'.$id_lang;
+                $field_val = Configuration::get($field_key);
+                $params2[$val][$id_lang] = Tools::getValue($field_key, $field_val);
+            }
+        }
+        $params = array_merge($params1, $params2);
+        return $params;
     }
     
     protected function postValidation()
@@ -343,6 +411,16 @@ class Hitpay extends PaymentModule
             $HITPAY_PAYMENT_LOGOS = '';
         } 
         Configuration::updateValue('HITPAY_PAYMENT_LOGOS', $HITPAY_PAYMENT_LOGOS);
+        
+        $languages = Language::getLanguages(false);
+        foreach ($languages as $language) {
+            $id_lang = $language['id_lang'];
+            foreach ($this->form_lang_fields as $key => $val) {
+                $field_key = $val.'_'.$id_lang;
+                $field_val = Tools::getValue($field_key);
+                Configuration::updateValue($field_key,  $field_val);
+            }
+        }
 
         $this->html .= $this->displayConfirmation($this->l('Settings updated'));
     }
@@ -401,22 +479,40 @@ class Hitpay extends PaymentModule
         ];
     }
     
+    public function getSiteName()
+    {
+        $name = Configuration::get("PS_SHOP_NAME");
+        if (empty($name)) {
+            $name = $this->context->shop->name;
+        }
+        
+        return $name;
+    }
+    
+    public function getPaymentOrderStatus()
+    {
+        $status = (int)Configuration::get("HITPAY_ORDER_STATUS");
+        if ($status == 0) {
+            $status = Configuration::get('PS_OS_PAYMENT');
+        }
+        
+        return $status;
+    }
+    
     public function getTitle()
     {
-        $title = '';
-        $HITPAY_PAYMENT_LOGOS = Configuration::get('HITPAY_PAYMENT_LOGOS');
-        if ($this->displayLogoTitle && !empty($HITPAY_PAYMENT_LOGOS)) {
-            $HITPAY_PAYMENT_LOGOS_arr = explode(',', $HITPAY_PAYMENT_LOGOS);
-            $options = $this->getPaymentLogoOptions();
-            foreach ($HITPAY_PAYMENT_LOGOS_arr as $HITPAY_PAYMENT_LOGO) {
-                if (empty($title)) {
-                    $title = $options[$HITPAY_PAYMENT_LOGO];
-                } else {
-                    $title .= ', '.$options[$HITPAY_PAYMENT_LOGO];
-                }
-            }
-        } else {
-            $title = $this->displayName;
+        $id_lang = $this->context->language->id;
+
+        $title = Configuration::get(
+            'HITPAY_TITLE_'.$id_lang,
+            null, 
+            null, 
+            null, 
+            'HitPay Payment Gateway'
+        );
+        
+        if (empty($title)) {
+            $title = $this->l('HitPay Payment Gateway');
         }
         
         return $title;
@@ -471,6 +567,22 @@ class Hitpay extends PaymentModule
         return $this->registerHook('displayAdminOrder') && $this->registerHook('actionOrderSlipAdd') && $this->registerHook('displayAdminOrderMainBottom');
     }
     
+    public function upgrade_2_0_0()
+    {
+        $sql = 'ALTER TABLE '._DB_PREFIX_. 'hitpay_payments ADD payment_type varchar(50)';
+        Db::getInstance()->execute($sql);
+        
+        $sql = 'ALTER TABLE '._DB_PREFIX_. 'hitpay_payments_shop ADD payment_type varchar(50)';
+        Db::getInstance()->execute($sql);
+        
+        $sql = 'ALTER TABLE '._DB_PREFIX_. 'hitpay_payments ADD fees decimal(20,6)';
+        Db::getInstance()->execute($sql);
+        
+        $sql = 'ALTER TABLE '._DB_PREFIX_. 'hitpay_payments_shop ADD fees decimal(20,6)';
+        Db::getInstance()->execute($sql);
+        return true;
+    }
+    
     public function isWebhookTriggered($order_id)
     {
         return (int)Db::getInstance()->getValue('select id FROM ' . _DB_PREFIX_.$this->webhookTableName . ' WHERE order_id='.(int)($order_id));
@@ -505,9 +617,68 @@ class Hitpay extends PaymentModule
             'created_at' => $result->getCreatedAt()
         ));
     }
+    
+    private function getOrderFromParams($params)
+    {
+        if (isset($params['id_order'])) {
+            return new Order((int)$params['id_order']);
+        } elseif (isset($params['order']->id)) {
+            return  $params['order'];
+        } elseif (isset($params['objOrder']->id)) {
+            return  $params['objOrder'];
+        }
+        return false;
+    }
 
     public function hookDisplayAdminOrder($params)
     {
+        $order = $this->getOrderFromParams($params);
+        if ($order && $order->id > 0 && ($order->module == $this->name)) {
+            $savedPayment = HitPayPayment::getByOrderId($order->id);
+            if (Validate::isLoadedObject($savedPayment) && $savedPayment->is_paid) {
+                
+                $payment_method = '';
+                $payment_request_id = $savedPayment->payment_id;
+                
+                if (!empty($payment_request_id)) {
+                    $payment_method = $savedPayment->payment_type;
+                    $fees = $savedPayment->fees;
+                    if (empty($payment_method) || empty($fees)) {
+                        try {
+                            $hitpayClient = new Client(
+                                Configuration::get('HITPAY_ACCOUNT_API_KEY'),
+                                Configuration::get('HITPAY_LIVE_MODE')
+                            );
+
+                            $paymentStatus = $hitpayClient->getPaymentStatus($payment_request_id);
+                            if ($paymentStatus) {
+                                $payments = $paymentStatus->payments;
+                                if (isset($payments[0])) {
+                                    $payment = $payments[0];
+                                    $payment_method = $payment->payment_type;
+                                    $savedPayment->payment_type = $payment_method;
+                                    $fees = $payment->fees;
+                                    $savedPayment->fees = $fees;
+                                    $savedPayment->save();
+                                }
+                            }
+                        } catch (\Exception $e) {
+                            $payment_method = $e->getMessage();
+                        }
+                    }
+                }
+                
+                if (!empty($payment_method)) {
+                    $this->context->smarty->assign(
+                        array(
+                            'payment_method' => ucwords(str_replace("_", " ", $payment_method)),
+                            'hitpay_fee' => $this->displayPriceWithCurrency($savedPayment->fees, (int)$savedPayment->currency_id)
+                        )
+                    );
+                    return $this->display(__FILE__, 'payment_details.tpl');
+                }
+            }
+        }
     }
     
     public function hookDisplayAdminOrderMainBottom($params)
@@ -599,6 +770,20 @@ class Hitpay extends PaymentModule
         $locale = Tools::getContextLocale($context);
         $currencyCode = is_array($currency) ? $currency['iso_code'] : $currency->iso_code;
 
+        return $locale->formatPrice($price, $currencyCode);
+    }
+    
+    public function displayPriceWithCurrency($price, $currency)
+    {
+        $context = $context ?: Context::getContext();
+        $currency = $currency ?: $context->currency;
+        
+        if (is_int($currency)) {
+            $currency = new Currency($currency);
+        }
+
+        $locale = Tools::getContextLocale($context);
+        $currencyCode = is_array($currency) ? $currency['iso_code'] : $currency->iso_code;
         return $locale->formatPrice($price, $currencyCode);
     }
 }
