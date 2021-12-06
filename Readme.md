@@ -31,3 +31,5 @@ composer update;
 ![](views/img/readme/admin5.png)
 2. Checking orders
 ![](views/img/readme/admin6.png)
+3. Refunds
+- You can find more details here(https://www.notion.so/hitpay/Prestashop-1-7-Refunds-Instructions-277a6e84f62143ef86b964ab40865d4f)
