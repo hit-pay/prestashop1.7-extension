@@ -9,14 +9,5 @@
   ],
   "config": {
         "prepend-autoloader": false
-  },
-  "require": {
-    "softbuild/hitpay-sdk": "2.0.*"
-  },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/hit-pay/php-sdk.git"
-    }
-  ]
+  }
 }
