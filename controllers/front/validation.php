@@ -108,7 +108,7 @@ class HitpayValidationModuleFrontController extends ModuleFrontController
             }
         } catch (\Exception $e) {
             PrestaShopLogger::addLog(
-                'HitPay: ' . $e->getMessage(),
+                date("Y-m-d H:i:s").': '.'HitPay: ' . $e->getMessage(),
                 3,
                 null,
                 'HitPay'

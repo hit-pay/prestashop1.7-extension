@@ -95,12 +95,15 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
         try {
             $data = $_POST;
             
+            /*
             PrestaShopLogger::addLog(
                 date("Y-m-d H:i:s").': '.'HitPay: Webhook Post Data: '.print_r($data, true),
                 1,
                 null,
                 'HitPay'
             );
+             * 
+             */
             
             unset($data['hmac']);
 

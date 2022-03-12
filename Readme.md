@@ -92,3 +92,6 @@ composer update;
 
 = 2.0.1 =
 - HitPay SDK included within the package
+
+= 2.0.2 =
+- More logs are added for the debugging and removed a log(post data) from the webhook.
