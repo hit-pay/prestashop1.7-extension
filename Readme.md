@@ -92,3 +92,8 @@ composer update;
 
 = 2.0.1 =
 - HitPay SDK included within the package
+
+= 2.0.2 =
+- Refund currency display issue in the admin
+- Fixed: Error message: Call to protected method ToolsCore::getContextLocale() from context 'Hitpay'
+

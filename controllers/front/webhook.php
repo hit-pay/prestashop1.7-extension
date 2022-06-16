@@ -90,7 +90,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
         $message = null; // You can add a comment directly into the order so the merchant will see it in the BO.
         $transaction_id = null;
         $module_name = $this->module->displayName;
-        $currency_id = (int) Context::getContext()->currency->id;
+        $currency_id = (int) $this->context->currency->id;
 
         try {
             $data = $_POST;
@@ -148,7 +148,7 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                             $module_name,
                             $message,
                             array(),
-                            $currency_id,
+                            Currency::getIdByIsoCode(Tools::getValue('currency')),
                             false,
                             $secure_key
                         );

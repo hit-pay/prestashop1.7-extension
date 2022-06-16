@@ -29,6 +29,7 @@ if (!defined('_PS_VERSION_')) {
 }
 
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
+use PrestaShop\PrestaShop\Adapter\ContainerFinder;
 
 require_once _PS_MODULE_DIR_ . 'hitpay/vendor/autoload.php';
 require_once _PS_MODULE_DIR_ . 'hitpay/classes/HitPayPayment.php';
@@ -40,6 +41,8 @@ use HitPay\Client;
  */
 class Hitpay extends PaymentModule
 {
+    const SERVICE_LOCALE_REPOSITORY = 'prestashop.core.localization.locale.repository';
+    
     protected $html = '';
     protected $postErrors = array();
     
@@ -56,7 +59,7 @@ class Hitpay extends PaymentModule
     {
         $this->name = 'hitpay';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.1';
+        $this->version = '2.0.2';
         $this->author = 'HitPay';
 
         $this->bootstrap = true;
@@ -743,12 +746,12 @@ class Hitpay extends PaymentModule
                                     $refund_error = $this->l('Refund Payment Failed: ').$e->getMessage();
                                 }
                             }
-                            $savedPayment->amount = $this->displayPrice($savedPayment->amount);
-                            
+                            $savedPayment->amount = $this->displayPriceWithCurrency($savedPayment->amount, (int)$savedPayment->currency_id);
+
                             $refund = $this->getRefund($id_order);
                             if ($refund) {
-                                $refund['amount_refunded'] = $this->displayPrice($refund['amount_refunded']);
-                                $refund['total_amount'] = $this->displayPrice($refund['total_amount']);
+                                 $refund['amount_refunded'] = $this->displayPriceWithCurrency($refund['amount_refunded'], (int)$savedPayment->currency_id);
+                                $refund['total_amount'] = $this->displayPriceWithCurrency($refund['total_amount'], (int)$savedPayment->currency_id);
                                 $this->context->smarty->assign('refundData', $refund);
                             } else {
                                 $this->context->smarty->assign('payment_id', $transaction_id);
@@ -775,7 +778,7 @@ class Hitpay extends PaymentModule
             $currency = Currency::getCurrencyInstance($currency);
         }
 
-        $locale = Tools::getContextLocale($context);
+        $locale = static::getContextLocale($context);
         $currencyCode = is_array($currency) ? $currency['iso_code'] : $currency->iso_code;
 
         return $locale->formatPrice($price, $currencyCode);
@@ -783,15 +786,37 @@ class Hitpay extends PaymentModule
     
     public function displayPriceWithCurrency($price, $currency)
     {
-        $context = $context ?: Context::getContext();
+        $context = Context::getContext();
         $currency = $currency ?: $context->currency;
-        
+
         if (is_int($currency)) {
             $currency = new Currency($currency);
         }
 
-        $locale = Tools::getContextLocale($context);
+        $locale = static::getContextLocale($context);
         $currencyCode = is_array($currency) ? $currency['iso_code'] : $currency->iso_code;
         return $locale->formatPrice($price, $currencyCode);
+    }
+    
+    protected static function getContextLocale(Context $context)
+    {
+        $locale = $context->getCurrentLocale();
+        if (null !== $locale) {
+            return $locale;
+        }
+
+        $containerFinder = new ContainerFinder($context);
+        $container = $containerFinder->getContainer();
+        if (null === $context->container) {
+            $context->container = $container;
+        }
+
+        /** @var LocaleRepository $localeRepository */
+        $localeRepository = $container->get(self::SERVICE_LOCALE_REPOSITORY);
+        $locale = $localeRepository->getLocale(
+            $context->language->getLocale()
+        );
+
+        return $locale;
     }
 }
