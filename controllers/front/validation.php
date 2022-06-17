@@ -41,33 +41,33 @@ class HitpayValidationModuleFrontController extends ModuleFrontController
             /**
              * @var CartCore $cart
              */
-            $cart = Context::getContext()->cart;
+            $cart = $this->context->cart;
 
             /**
              * @var CurrencyCore $currency
              */
-            $currency = Context::getContext()->currency;
+            $currency = $this->context->currency;
 
             $hitpay_client = new Client(
                 Configuration::get('HITPAY_ACCOUNT_API_KEY'),
                 Configuration::get('HITPAY_LIVE_MODE')
             );
-            $redirect_url = Context::getContext()->link->getModuleLink(
+            $redirect_url = $this->context->link->getModuleLink(
                 'hitpay',
                 'confirmation',
                 [
                     'cart_id' => $cart->id,
-                    'secure_key' => Context::getContext()->customer->secure_key,
+                    'secure_key' => $this->context->customer->secure_key,
                 ],
                 true
             );
 
-            $webhook = Context::getContext()->link->getModuleLink(
+            $webhook = $this->context->link->getModuleLink(
                 'hitpay',
                 'webhook',
                 [
                     'cart_id' => $cart->id,
-                    'secure_key' => Context::getContext()->customer->secure_key,
+                    'secure_key' => $this->context->customer->secure_key,
                 ],
                 true
             );
@@ -83,7 +83,7 @@ class HitpayValidationModuleFrontController extends ModuleFrontController
             /**
              * @var Customer $customer
              */
-            if ($customer = Context::getContext()->customer) {
+            if ($customer = $this->context->customer) {
                 $create_payment_request->setName($customer->firstname . ' ' . $customer->lastname);
                 $create_payment_request->setEmail($customer->email);
             }
