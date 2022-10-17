@@ -49,7 +49,11 @@ $(document).ready(function(){
                         var logoArray = hitpay_logos.split(',');
                         var logoImages = '';
                         for(var i = 0; i < logoArray.length; i++) {
-                            logoImages += '<img src="'+hitpay_logo_path+logoArray[i]+'.svg" title="'+logoArray[i]+'" alt="'+logoArray[i]+'" class="hitpay-logo"/>';
+                            var extn = 'svg';
+                            if (logoArray[i] == 'atomeplus' || logoArray[i] == 'pesonet') {
+                                extn = 'png';
+                            }
+                            logoImages += '<img src="'+hitpay_logo_path+logoArray[i]+'.'+extn+'" title="'+logoArray[i]+'" alt="'+logoArray[i]+'" class="hitpay-logo"/>';
                         }
                         if (logoImages.length > 0) {
                             hitpayInput.parent().next().next().children('img').addClass('hitpay-payment-default-logo');

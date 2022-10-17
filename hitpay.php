@@ -59,7 +59,7 @@ class Hitpay extends PaymentModule
     {
         $this->name = 'hitpay';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.2';
+        $this->version = '2.0.3';
         $this->author = 'HitPay';
 
         $this->bootstrap = true;
@@ -216,6 +216,30 @@ class Hitpay extends PaymentModule
             array(
                 'value' => 'zip',
                 'label' => $this->l('Zip')
+            ),
+            array(
+                'value' => 'atomeplus',
+                'label' => $this->l('ATome+')
+            ),
+            array(
+                'value' => 'unionbank',
+                'label' => $this->l('Unionbank Online')
+            ),
+            array(
+                'value' => 'qrph',
+                'label' => $this->l('Instapay QR PH')
+            ),
+            array(
+                'value' => 'pesonet',
+                'label' => $this->l('PESONet')
+            ),
+            array(
+                'value' => 'gcash',
+                'label' => $this->l('GCash')
+            ),
+            array(
+                'value' => 'billease',
+                'label' => $this->l('Billease BNPL')
             ),
         );
         return $list;
