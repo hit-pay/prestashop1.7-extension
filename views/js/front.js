@@ -50,7 +50,7 @@ $(document).ready(function(){
                         var logoImages = '';
                         for(var i = 0; i < logoArray.length; i++) {
                             var extn = 'svg';
-                            if (logoArray[i] == 'atomeplus' || logoArray[i] == 'pesonet') {
+                            if (logoArray[i] == 'pesonet') {
                                 extn = 'png';
                             }
                             logoImages += '<img src="'+hitpay_logo_path+logoArray[i]+'.'+extn+'" title="'+logoArray[i]+'" alt="'+logoArray[i]+'" class="hitpay-logo"/>';
