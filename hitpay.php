@@ -59,7 +59,7 @@ class Hitpay extends PaymentModule
     {
         $this->name = 'hitpay';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.2';
+        $this->version = '2.0.3';
         $this->author = 'HitPay';
 
         $this->bootstrap = true;
@@ -315,6 +315,25 @@ class Hitpay extends PaymentModule
                         'required' => true,
                     ),
                     array(
+                        'type' => 'switch',
+                        'label' => $this->l('Checkout UI Option'),
+                        'name' => 'HITPAY_DROP_IN',
+                        'is_bool' => true,
+                        'desc' => $this->l('The drop-in is embedded into your webpage so your customer will never have to leave your site.').' <br/>'.$this->l('Redirect: Navigate your user to the hitpay checkout url, and hitpay will take care of the rest of the flow'),
+                        'values' => array(
+                            array(
+                                'id' => 'dropin_on',
+                                'value' => true,
+                                'label' => $this->l('Drop-In (Popup)')
+                            ),
+                            array(
+                                'id' => 'dropin_off',
+                                'value' => false,
+                                'label' => $this->l('Redirect')
+                            )
+                        ),
+                    ),
+                    array(
                         'type' => 'select',
                         'label' => $this->l('Payment Logos'),
                         'name' => 'HITPAY_PAYMENT_LOGOS',
@@ -361,6 +380,7 @@ class Hitpay extends PaymentModule
         $API_KEY = Configuration::get('HITPAY_ACCOUNT_API_KEY');
         $SALT = Configuration::get('HITPAY_ACCOUNT_SALT');
         $ORDER_STATUS = Configuration::get('HITPAY_ORDER_STATUS');
+        $DROP_IN = Configuration::get('HITPAY_DROP_IN');
             
         $params1 = array(
             'HITPAY_LIVE_MODE' => Tools::getValue('HITPAY_LIVE_MODE', $LIVE_MODE),
@@ -368,6 +388,7 @@ class Hitpay extends PaymentModule
             'HITPAY_ACCOUNT_SALT' => Tools::getValue('HITPAY_ACCOUNT_SALT', $SALT),
             'HITPAY_PAYMENT_LOGOS[]' => explode(',',$HITPAY_PAYMENT_LOGOS),
             'HITPAY_ORDER_STATUS' => Tools::getValue('HITPAY_ORDER_STATUS', $ORDER_STATUS),
+            'HITPAY_DROP_IN' => Tools::getValue('HITPAY_DROP_IN', $DROP_IN),
         );
         
         $languages = Language::getLanguages(false);
@@ -452,12 +473,34 @@ class Hitpay extends PaymentModule
      */
     public function hookHeader()
     {
+        $DROP_IN = Configuration::get('HITPAY_DROP_IN');
+        if ($DROP_IN) {
+            $dropin_js = 'https://sandbox.hit-pay.com/hitpay.js';
+            if (Configuration::get('HITPAY_LIVE_MODE')) {
+                $dropin_js = 'https://hit-pay.com/hitpay.js';
+            }
+            
+            $this->context->controller->registerJavascript(
+                'hitpay-jquery-dropin', 
+                $dropin_js,
+                array('server' => 'remote', 'position' => 'bottom', 'priority' => 150)
+            );
+        }
+        
         $this->context->controller->addJS($this->_path.'/views/js/front.js');
+        if ($DROP_IN) {
+            $this->context->controller->addJS($this->_path.'/views/js/dropin.js');
+        }
         $this->context->controller->addCSS($this->_path.'/views/css/front.css');
         
         $logos = Configuration::get('HITPAY_PAYMENT_LOGOS');
         $this->context->smarty->assign('hitpay_logos', $logos);
         $this->context->smarty->assign('hitpay_logo_path', _MODULE_DIR_.$this->name.'/views/img/');
+        
+        
+        $create_payment_request_ajax_url = $this->context->link->getModuleLink('hitpay', 'createpaymentrequest');
+        $this->context->smarty->assign('create_payment_request_ajax_url', $create_payment_request_ajax_url);
+        
         return $this->display(__FILE__, 'assign.tpl');
     }
 

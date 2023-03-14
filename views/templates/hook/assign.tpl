@@ -25,4 +25,5 @@
 <script type="text/javascript">
     var hitpay_logos = '{$hitpay_logos|escape:'html':'UTF-8'}';
     var hitpay_logo_path = '{$hitpay_logo_path|escape:'html':'UTF-8'}';
+    let create_payment_request_ajax_url = '{$create_payment_request_ajax_url|escape:'htmlall':'UTF-8'}';
 </script>
