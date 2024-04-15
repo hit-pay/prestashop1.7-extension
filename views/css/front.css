@@ -26,6 +26,13 @@
 * to avoid any conflicts with others containers.
 */
 
-.upayments-payment-logo {
-    height: 27px;
+img.hitpay-payment-default-logo {
+    display: none;
+}
+.hitpay-payment-option-label span {
+    float: left;
+    margin-right: 10px;
+}
+img.hitpay-logo {
+    float: left;
 }
