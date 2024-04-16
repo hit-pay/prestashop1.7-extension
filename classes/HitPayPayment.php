@@ -167,9 +167,9 @@ class HitPayPayment extends ObjectModel
                 'size' => 255,
             ),
             'fees' => array(
-                'type' => self::TYPE_FLOAT,
+                'type' => self::TYPE_STRING,
                 'shop' => true,
-                 'validate' => 'isFloat',
+                 'validate' => 'isString',
                 'size' => 50
             ),
         ),

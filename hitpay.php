@@ -59,7 +59,7 @@ class Hitpay extends PaymentModule
     {
         $this->name = 'hitpay';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.3';
+        $this->version = '2.0.4';
         $this->author = 'HitPay';
 
         $this->bootstrap = true;
@@ -217,6 +217,222 @@ class Hitpay extends PaymentModule
                 'value' => 'zip',
                 'label' => $this->l('Zip')
             ),
+            [
+                'value' => 'atomeplus',
+                'label' => $this->l('ATome+')
+            ],
+            [
+                'value' => 'unionbank',
+                'label' => $this->l('Unionbank Online')
+            ],
+            [
+                'value' => 'qrph',
+                'label' => $this->l('Instapay QR PH')
+            ],
+            [
+                'value' => 'pesonet',
+                'label' => $this->l('PESONet')
+            ],
+            [
+                'value' => 'gcash',
+                'label' => $this->l('GCash')
+            ],
+            [
+                'value' => 'billease',
+                'label' => $this->l('Billease BNPL')
+            ],
+            [
+                'value' => 'eftpos',
+                'label' => $this->l('eftpos')
+            ],
+            [
+                'value' => 'maestro',
+                'label' => $this->l('maestro')
+            ],
+            [
+                'value' => 'alfamart',
+                'label' => $this->l('Alfamart')
+            ],
+            [
+                'value' => 'indomaret',
+                'label' => $this->l('Indomaret')
+            ],
+            [
+                'value' => 'dana',
+                'label' => $this->l('DANA')
+            ],
+            [
+                'value' => 'gopay',
+                'label' => $this->l('gopay')
+            ],
+            [
+                'value' => 'linkaja',
+                'label' => $this->l('Link Aja!')
+            ],
+            [
+                'value' => 'ovo',
+                'label' => $this->l('OVO')
+            ],
+            [
+                'value' => 'qris',
+                'label' => $this->l('QRIS')
+            ],
+            [
+                'value' => 'danamononline',
+                'label' => $this->l('Bank Danamon')
+            ],
+            [
+                'value' => 'permata',
+                'label' => $this->l('PermataBank')
+            ],
+            [
+                'value' => 'bsi',
+                'label' => $this->l('Bank Syariah Indonesia')
+            ],
+            [
+                'value' => 'bca',
+                'label' => $this->l('BCA')
+            ],
+            [
+                'value' => 'bni',
+                'label' => $this->l('BNI')
+            ],
+            [
+                'value' => 'bri',
+                'label' => $this->l('BRI')
+            ],
+            [
+                'value' => 'cimb',
+                'label' => $this->l('CIMB Niaga')
+            ],
+            [
+                'value' => 'doku',
+                'label' => $this->l('DOKU')
+            ],
+            [
+                'value' => 'mandiri',
+                'label' => $this->l('Mandiri')
+            ],
+            [
+                'value' => 'akulaku',
+                'label' => $this->l('AkuLaku BNPL')
+            ],
+            [
+                'value' => 'kredivo',
+                'label' => $this->l('Kredivo BNPL')
+            ],
+            [
+                'value' => 'philtrustbank',
+                'label' => $this->l('PHILTRUST BANK')
+            ],
+            [
+                'value' => 'allbank',
+                'label' => $this->l('AllBank')
+            ],
+            [
+                'value' => 'aub',
+                'label' => $this->l('ASIA UNITED BANK')
+            ],
+            [
+                'value' => 'chinabank',
+                'label' => $this->l('CHINABANK')
+            ],
+            [
+                'value' => 'instapay',
+                'label' => $this->l('instaPay')
+            ],
+            [
+                'value' => 'landbank',
+                'label' => $this->l('LANDBANK')
+            ],
+            [
+                'value' => 'metrobank',
+                'label' => $this->l('Metrobank')
+            ],
+            [
+                'value' => 'pnb',
+                'label' => $this->l('PNB')
+            ],
+            [
+                'value' => 'queenbank',
+                'label' => $this->l('QUEENBANK')
+            ],
+            [
+                'value' => 'rcbc',
+                'label' => $this->l('RCBC')
+            ],
+            [
+                'value' => 'tayocash',
+                'label' => $this->l('TayoCash')
+            ],
+            [
+                'value' => 'ussc',
+                'label' => $this->l('USSC')
+            ],
+            [
+                'value' => 'bayad',
+                'label' => $this->l('bayad')
+            ],
+            [
+                'value' => 'cebuanalhuillier',
+                'label' => $this->l('CEBUANA LHUILLIER')
+            ],
+            [
+                'value' => 'ecpay',
+                'label' => $this->l('ecPay')
+            ],
+            [
+                'value' => 'palawan',
+                'label' => $this->l('PALAWAN PAWNSHOP')
+            ],
+            [
+                'value' => 'bpi',
+                'label' => $this->l('BPI')
+            ],
+            [
+                'value' => 'psbank',
+                'label' => $this->l('PSBank')
+            ],
+            [
+                'value' => 'robinsonsbank',
+                'label' => $this->l('Robinsons Bank')
+            ],
+            [
+                'value' => 'diners_club',
+                'label' => $this->l('Diners Club')
+            ],
+            [
+                'value' => 'discover',
+                'label' => $this->l('Discover')
+            ],
+            [
+                'value' => 'doku_wallet',
+                'label' => $this->l('DOKU Wallet')
+            ],
+            [
+                'value' => 'grab_paylater',
+                'label' => $this->l('PayLater by Grab')
+            ],
+            [
+                'value' => 'favepay',
+                'label' => $this->l('FavePay')
+            ],
+            [
+                'value' => 'shopback_paylater',
+                'label' => $this->l('ShopBack PayLater')
+            ],
+            [
+                'value' => 'duitnow',
+                'label' => $this->l('DuitNow')
+            ],
+            [
+                'value' => 'touchngo',
+                'label' => $this->l('Touch \'n Go')
+            ],
+            [
+                'value' => 'boost',
+                'label' => $this->l('Boost')
+            ],
         );
         return $list;
     }
@@ -814,6 +1030,7 @@ class Hitpay extends PaymentModule
     
     public function displayPrice($price)
     {
+		$price = str_replace(',', '', $price);
         $context = $context ?: Context::getContext();
         $currency = $currency ?: $context->currency;
 
@@ -829,6 +1046,7 @@ class Hitpay extends PaymentModule
     
     public function displayPriceWithCurrency($price, $currency)
     {
+		$price = str_replace(',', '', $price);
         $context = Context::getContext();
         $currency = $currency ?: $context->currency;
 
@@ -861,5 +1079,14 @@ class Hitpay extends PaymentModule
         );
 
         return $locale;
+    }
+	
+	/**
+     * Check if version is 1.7.8.x *
+     * @return int
+     */
+    public function is178x()
+    {
+        return version_compare(_PS_VERSION_, '1.7.8', '>=');
     }
 }

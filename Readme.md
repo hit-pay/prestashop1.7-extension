@@ -97,3 +97,10 @@ composer update;
 - Refund currency display issue in the admin
 - Fixed: Error message: Call to protected method ToolsCore::getContextLocale() from context 'Hitpay'
 
+= 2.0.3 =
+- Added Atome and Billease, GCash, Union Bank, QRPH, PESONet logos
+
+= 2.0.4 =
+- Updated on Apr 16, 2024
+- Added new 47 logos
+- And fixed image display issue for the Pngs images and fixed logo height
