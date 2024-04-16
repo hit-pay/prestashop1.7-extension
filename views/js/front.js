@@ -42,18 +42,46 @@ $(document).ready(function(){
             if (typeof(hitpay_logo_path) !== "undefined") {
                 var hitpayInput = $('input[data-module-name="hitpay"]');
                 if (hitpayInput.length > 0) {
+
+                    const pngs = new Array(
+                        'pesonet',
+                        'eftpos',
+                        'doku',
+                        'philtrustbank',
+                        'allbank',
+                        'aub',
+                        'chinabank',
+                        'instapay',
+                        'landbank',
+                        'metrobank',
+                        'pnb',
+                        'queenbank',
+                        'ussc',
+                        'bayad',
+                        'cebuanalhuillier',
+                        'psbank',
+                        'robinsonsbank',
+                        'doku_wallet',
+                        'favepay',
+                        'shopback_paylater'
+                    );
+
                     is_payment_option_found = true;
                     hitpayInput.parent().next().next().addClass('hitpay-payment-option-label');
                     
                     if (typeof(hitpay_logos) !== "undefined" && hitpay_logos.length > 0) {
                         var logoArray = hitpay_logos.split(',');
                         var logoImages = '';
+                        
                         for(var i = 0; i < logoArray.length; i++) {
-                            var extn = 'svg';
-                            if (logoArray[i] == 'pesonet') {
-                                extn = 'png';
+                            var extension = 'svg';
+                            var logoName = logoArray[i];
+                            if (pngs.includes(logoName)) {
+                                var extension = 'png';
                             }
-                            logoImages += '<img src="'+hitpay_logo_path+logoArray[i]+'.'+extn+'" title="'+logoArray[i]+'" alt="'+logoArray[i]+'" class="hitpay-logo"/>';
+
+                            logoImages += '<img src="'+hitpay_logo_path+logoName+'.'+extension+'" title="'+logoName+'" alt="'+logoName+'" class="hitpay-logo"/>';
+
                         }
                         if (logoImages.length > 0) {
                             hitpayInput.parent().next().next().children('img').addClass('hitpay-payment-default-logo');

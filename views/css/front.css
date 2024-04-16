@@ -35,4 +35,6 @@ img.hitpay-payment-default-logo {
 }
 img.hitpay-logo {
     float: left;
+    height: 28px;
+    padding: 2px
 }

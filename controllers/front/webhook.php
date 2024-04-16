@@ -138,13 +138,41 @@ class HitpayWebhookModuleFrontController extends ModuleFrontController
                             )
                         );
                     }
+					
+					$cart_total_paid = $cart->getOrderTotal();
+					if ($this->module->is178x()) {
+					PrestaShopLogger::addLog(
+                date("Y-m-d H:i:s").': '.'HitPay: is178x true',
+                1,
+                null,
+                'HitPay'
+            );
+						$cart_total_paid = (float) Tools::ps_round(
+							(float) $cart->getOrderTotal(true, Cart::BOTH),
+							Context::getContext()->getComputingPrecision()
+						);
+					} else {
+						PrestaShopLogger::addLog(
+                date("Y-m-d H:i:s").': '.'HitPay: is178x false',
+                1,
+                null,
+                'HitPay'
+            );
+			
+			PrestaShopLogger::addLog(
+                date("Y-m-d H:i:s").': '.'HitPay: cart_total_paid:'.$cart_total_paid,
+                1,
+                null,
+                'HitPay'
+            );
+					}
 
                     $order_id = Order::getIdByCartId((int) $cart->id);
                     if (!$order_id) {
                         $this->module->validateOrder(
                             $cart_id,
                             $payment_status,
-                            $cart->getOrderTotal(),
+                            $cart_total_paid,
                             $module_name,
                             $message,
                             array(),
