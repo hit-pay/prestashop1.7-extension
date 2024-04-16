@@ -217,6 +217,7 @@ class Hitpay extends PaymentModule
                 'value' => 'zip',
                 'label' => $this->l('Zip')
             ),
+
             [
                 'value' => 'atomeplus',
                 'label' => $this->l('ATome+')

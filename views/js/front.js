@@ -81,6 +81,7 @@ $(document).ready(function(){
                             }
 
                             logoImages += '<img src="'+hitpay_logo_path+logoName+'.'+extension+'" title="'+logoName+'" alt="'+logoName+'" class="hitpay-logo"/>';
+
                         }
                         if (logoImages.length > 0) {
                             hitpayInput.parent().next().next().children('img').addClass('hitpay-payment-default-logo');
