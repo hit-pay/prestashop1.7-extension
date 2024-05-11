@@ -59,7 +59,7 @@ class Hitpay extends PaymentModule
     {
         $this->name = 'hitpay';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.4';
+        $this->version = '2.0.5';
         $this->author = 'HitPay';
 
         $this->bootstrap = true;
@@ -853,6 +853,17 @@ class Hitpay extends PaymentModule
         Db::getInstance()->execute($sql);
         return true;
     }
+
+    public function upgrade_2_0_5()
+    {
+        $sql = 'ALTER TABLE '._DB_PREFIX_. 'hitpay_payments ADD home_currency varchar(5)';
+        Db::getInstance()->execute($sql);
+        
+        $sql = 'ALTER TABLE '._DB_PREFIX_. 'hitpay_payments_shop ADD home_currency varchar(5)';
+        Db::getInstance()->execute($sql);
+
+        return true;
+    }
     
     public function isWebhookTriggered($order_id)
     {
@@ -914,7 +925,8 @@ class Hitpay extends PaymentModule
                 if (!empty($payment_request_id)) {
                     $payment_method = $savedPayment->payment_type;
                     $fees = $savedPayment->fees;
-                    if (empty($payment_method) || empty($fees)) {
+                    $home_currency = $savedPayment->home_currency;
+                    if (empty($payment_method) || empty($fees) || empty($home_currency)) {
                         try {
                             $hitpayClient = new Client(
                                 Configuration::get('HITPAY_ACCOUNT_API_KEY'),
@@ -924,12 +936,17 @@ class Hitpay extends PaymentModule
                             $paymentStatus = $hitpayClient->getPaymentStatus($payment_request_id);
                             if ($paymentStatus) {
                                 $payments = $paymentStatus->payments;
+
                                 if (isset($payments[0])) {
                                     $payment = $payments[0];
                                     $payment_method = $payment->payment_type;
                                     $savedPayment->payment_type = $payment_method;
                                     $fees = $payment->fees;
                                     $savedPayment->fees = $fees;
+
+                                    $home_currency = $payment->fees_currency;
+                                    $savedPayment->home_currency = $home_currency;
+
                                     $savedPayment->save();
                                 }
                             }
@@ -939,11 +956,20 @@ class Hitpay extends PaymentModule
                     }
                 }
                 
-                if (!empty($payment_method)) {
+                if (!empty($payment_method) && !empty($home_currency)) {
+                    $home_currency_iso = strtoupper($home_currency);
+                    $home_currency_id = Currency::getIdByIsoCode($home_currency_iso);
+
+                    $hitpay_fee = $savedPayment->fees. ' '.$home_currency_iso;
+                    if ($home_currency_id > 0) {
+                        $hitpay_fee = $this->displayPriceWithCurrency($savedPayment->fees, (int)$home_currency_id);
+                    }
+
+
                     $this->context->smarty->assign(
                         array(
                             'payment_method' => ucwords(str_replace("_", " ", $payment_method)),
-                            'hitpay_fee' => $this->displayPriceWithCurrency($savedPayment->fees, (int)$savedPayment->currency_id)
+                            'hitpay_fee' => $hitpay_fee
                         )
                     );
                     return $this->display(__FILE__, 'payment_details.tpl');
