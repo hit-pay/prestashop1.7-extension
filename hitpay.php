@@ -101,7 +101,8 @@ class Hitpay extends PaymentModule
             $this->upgrade_1_1_7() &&
             $this->upgrade_1_1_8() &&
             $this->upgrade_1_1_9() &&
-            $this->upgrade_2_0_0();
+            $this->upgrade_2_0_0() &&
+            $this->upgrade_2_0_5();
     }
 
     public function uninstall()
