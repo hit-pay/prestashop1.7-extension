@@ -104,3 +104,7 @@ composer update;
 - Updated on Apr 16, 2024
 - Added new 47 logos
 - And fixed image display issue for the Pngs images and fixed logo height
+
+= 2.0.5 =
+- Updated on May 11, 2024
+- Fixed Hitpay Fee Currency Issue
